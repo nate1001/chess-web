@@ -1,0 +1,45 @@
+
+{% macro board(fen, px=400, id='', float=False) -%}
+
+    {% if float %}
+        <div id="board{{ id }}" style="width: {{ px }}px; float: left; margin-right: 10px; margin-bottom: 10px "></div>
+    {% else %}
+        <div id="board{{ id }}" style="width: {{ px }}px;"></div>
+    {% endif %}
+
+    <script>
+        var init = function() {var board = ChessBoard('board{{ id }}','{{ fen }}');};
+        $(document).ready(init);
+    </script>
+
+{%- endmacro %}
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="s/css/chessboard.css" />
+  <link rel="stylesheet" href="s/css/main.css" />
+
+  <title>The Chess Index</title>
+
+</head>
+<body>
+    
+    <h1>The Chess Index</h1>
+
+    <script src="s/js/json3.min.js"></script>
+    <script src="s/js/jquery-1.10.1.min.js"></script>
+    <script src="s/js/chessboard.js"></script>
+
+    {{ board(query, 200, 0) }}
+    <br/>
+
+    {% for row in results %}
+        {{ board(row['fen'], 200, loop.index, True) }}
+        
+    {% endfor %}
+
+the end
+</body>
+</html>
