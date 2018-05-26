@@ -29,14 +29,13 @@
 
   <title>The Chess Index</title>
 
-</head>
 <style>
-
-svg { margin: 5px;
-}
-circle {stroke: blue; opacity:.5 }
-
+    {% for key, val in pos.heatmap.items() %}
+        .{{ "square-" + key + "{" }} ackground-color: {{val + "}"}}
+        .{{  key + "{" }} ill: {{val + "}"}}
+    {% endfor %}
 </style>
+</head>
 <body>
     
     <h1>The Chess Index</h1>
@@ -45,21 +44,18 @@ circle {stroke: blue; opacity:.5 }
     <script src="s/js/jquery-1.10.1.min.js"></script>
     <script src="s/js/chessboard.js"></script>
 
-    {{ querytxt }}
-    {{ svg_fen(query, querykey=querykey) }}
+    {{pos.site}}
 
+    <h3>{{pos.side}}</h3>
     <br/>
+    {{pos}}
+    <br/>
+    {{pos.score}}
+    <br/>
+    {{pos.scores}}
+    
+    <br/>
+    {{ svg(pos) }}
 
-    {% for pos in results %}
-    <div style='float:left'>
-    <p style='float:left'>{{ pos.distance }}
-    <br/>{{ fmt_ps(pos.keypieces, pos.keysquares) }}
-    </p>
-        {{ svg(pos, 50) }}
-    </div>
-        
-    {% endfor %}
-
-the end
 </body>
 </html>
