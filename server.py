@@ -46,6 +46,7 @@ env.globals['fmt_ps'] = fmt_ps
 app = Sanic()
 app.static('/s/', './static')
 app.static('/img/', './static/img')
+app.static('/svg/', './static/svg')
 
 @app.route("/")
 async def test(request):
@@ -53,6 +54,13 @@ async def test(request):
     pos = db.Query.random_position()
     t = env.get_template("single.jinja")
     return response.html(t.render(pos=pos))
+
+@app.route("/test")
+async def test(request):
+    import svg2
+    svg = svg2.basic_shapes().tostring()
+    t = env.get_template("test.jinja")
+    return response.html(t.render(svg=svg))
 
 @app.route("/search")
 async def search(request):
@@ -64,9 +72,12 @@ async def search(request):
     querytxt = l[0].querykey
 
     querykey = []
-    print(44, l[0].querykey)
-    for p in l[0].querykey[1:-1].split(","):
-        querykey.append(chess.SQUARE_NAMES.index(p[1:]))
+    try:
+        for p in l[0].querykey[1:-1].split(","):
+            querykey.append(chess.SQUARE_NAMES.index(p[1:]))
+    except ValueError:
+        for p in l[0].querykey[1:-1].split("' & '"):
+            querykey.append(chess.SQUARE_NAMES.index(p[1:]))
 
     t = env.get_template("index.jinja")
     return response.html(t.render(query=query, querykey=querykey, querytxt=querytxt, results=l))
