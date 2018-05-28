@@ -1,64 +1,17 @@
-
-{% macro board(fen, px=400, id='', float=False) -%}
-
-    {% if float %}
-        <div id="board{{ id }}" style="width: {{ px }}px; float: left; margin-right: 10px; margin-bottom: 10px "></div>
-    {% else %}
-        <div id="board{{ id }}" style="width: {{ px }}px;"></div>
-    {% endif %}
-
-    <script>
-
-        var cfg = { // config is global
-          showNotation: false,
-        };
-
-        var init = function() {var board = ChessBoard('board{{ id }}', cfg); board.position('{{ fen }}');};
-          
-        $(document).ready(init);
-    </script>
-
-{%- endmacro %}
-
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <link rel="stylesheet" href="s/css/chessboard.css" />
-  <link rel="stylesheet" href="s/css/main.css" />
-
-  <title>The Chess Index</title>
-
-</head>
-<style>
-
-svg { margin: 5px;
-}
-circle {stroke: blue; opacity:.5 }
-
-</style>
+{% include "header.jinja" %}
 <body>
-    
     <h1>The Chess Index</h1>
-
     <script src="s/js/json3.min.js"></script>
     <script src="s/js/jquery-1.10.1.min.js"></script>
     <script src="s/js/chessboard.js"></script>
 
-    {{ querytxt }}
-    <br/>
-    {{ svg_fen(query, querykey=querykey) }}
+    {{ svg(query) }}
 
     <br/>
-
     {% for pos in results %}
-    <div style='float:left'>
-    <p style='float:left'>{{ pos.distance }}
-    <br/>{{ fmt_ps(pos.keypieces, pos.keysquares) }}
-    </p>
-        {{ svg(pos, 50) }}
-    </div>
-        
+        <div style='float:left'>
+            {{ svg(pos, 50) }}
+        </div>
     {% endfor %}
 
 the end

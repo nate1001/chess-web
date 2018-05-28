@@ -46,11 +46,10 @@ class Query(Connection):
     def select_fen(cls, fen):
 
         c = Connection.cursor()
-        n, rows = cls.execute(c, "select * from v_position where fen=%s", fen)
+        n, rows = cls.execute(c, "select * from v_position where fen=%s limit 1", fen)
         if n == 0:
             return None
-        for row in rows:
-            return Position(row)
+        return Position(rows.fetchone())
 
 
 class Position(Connection):
@@ -121,28 +120,6 @@ class Position(Connection):
             s.add(sq)
         return s
     
-    def svg(self, id=None, **kwargs):
-        sl = '<rect class="square light {}" fill="#ffce9e"'
-        sd = '<rect class="square dark {}" fill="#d18b47"'
-
-        rl = '<rect class="square light {}" fill="{}"'
-        rd = '<rect class="square dark {}" fill="{}"'
-
-        style = ''
-
-        circles = []
-        for square in self.keysquares:
-            circles.append((square, square))
-
-        txt = chess.svg.board(self.board, arrows=circles, style=style, coordinates=False, **kwargs)
-
-        for key, val in self.heatmap.items():
-            txt = txt.replace(sl.format(key), rl.format(key, val))
-            txt = txt.replace(sd.format(key), rd.format(key, val))
-
-        if id:
-            txt = txt.replace("<svg ", '<svg id="{}"'.format(id))
-        return txt
 
 class PositionResult(Position):
     '''
@@ -169,22 +146,18 @@ class PositionResult(Position):
         self.querykey = row['querykey']
         self.queryboard = chess.Board(row['queryboard'] + ' 1 1')
 
+        s = [chess.SQUARE_NAMES.index(p[1:]) for p in self.querykey[1:-1].split(',')]
+        self.querysquares = s
+
     def __str__(self):
         return "<PositionResult '{}'>".format(self.board.fen())
 
 
 
 Connection.connect()
-#p = Query.select_fen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
-#for row in (Query.random_search())[1]:
-#    print(PositionResult(row))
 
 pos = Query.random_position()
-print(pos.scores)
-print(pos.squares)
-print(pos.pieces)
-#print(pos.svg())
-#print(heat.gen(pos))
-#
+if pos is None:
+    raise ValueError
 
 

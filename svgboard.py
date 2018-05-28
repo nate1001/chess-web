@@ -25,15 +25,18 @@ class SvgBoard:
     style = """
         .blacksquare { fill:  #f2f2f2; }
         .whitesquare { fill: #b3b3b3; }
-        text {font-family: "Consolas", mono-space; }
+
+        .blacksquare { fill:  #e6e6e6; stroke:black; stroke-width:.1px; }
+        .whitesquare { fill: none; stroke:gray; stroke-width:.2px; }
+
         a {fill : blue }
         a:hover { cursor: pointer }
 
         .title{ font-size: 4px; }
-        .caption{ font-size: 3px;}
+        .caption{ font-size: 2px;}
         .legend{ font-size: 2px;}
         .labels text {  font-size: 2px; opacity:.5 }
-        .circles { fill:none; stroke-width:1px; stroke:blue; opacity:.5}
+        .circles { fill:none; stroke-width:1px; stroke:blue; opacity:.3; stroke-width:.5px}
         .arrows { fill:blue; stroke:blue; stroke-width:2px; opacity:.5}
         .arrowhead {fill:blue; stroke:blue; opacity:.5, stroke-widith:0; }
 
@@ -136,7 +139,6 @@ class SvgBoard:
             self._title.add(a)
         else:
             self._title.add(txt)
-
 
     def add_caption(self, txt):
         of = 7

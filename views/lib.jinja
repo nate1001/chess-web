@@ -1,0 +1,21 @@
+
+{% macro board(fen, px=400, id='', float=False) -%}
+
+    {% if float %}
+        <div id="board{{ id }}" style="width: {{ px }}px; float: left; margin-right: 10px; margin-bottom: 10px "></div>
+    {% else %}
+        <div id="board{{ id }}" style="width: {{ px }}px;"></div>
+    {% endif %}
+
+    <script>
+
+        var cfg = { // config is global
+          showNotation: false,
+        };
+
+        var init = function() {var board = ChessBoard('board{{ id }}', cfg); board.position('{{ fen }}');};
+          
+        $(document).ready(init);
+    </script>
+
+{%- endmacro %}

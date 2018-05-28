@@ -7,19 +7,19 @@ class Heatmap:
     colors = red + ['#ffffff'] + green
     ranges = [-10, -8, -7, -6, -5, -4, -3, -2, -1, 0,
                1, 2, 3, 4, 5, 6, 7, 8, 10]
-    def gen(self, position):
+    def gen(self, position, cutoff=100):
 
         colors = []
         for score, piece, squares in zip(position.scores, position.keypieces, position.keysquares):
             if score is None:
                 #colors.append('gray')
                 continue
-            if abs(score) < 100:
+            if abs(score) < cutoff:
                 continue
 
 
             found = False
-            score = score / 100
+            score = score / cutoff
             i = 0
             while i < len(self.ranges):
                 if score < self.ranges[i]:
@@ -30,3 +30,17 @@ class Heatmap:
             if not found:
                 colors.append(self.colors[i-1])
         return colors
+
+    def color(self, score, cutoff=100):
+        if score is None:
+            return 
+        if abs(score) < cutoff:
+            return
+
+        score = score / cutoff
+        i = 0
+        while i < len(self.ranges):
+            if score < self.ranges[i]:
+                return self.colors[i]
+            i = i + 1
+        return self.colors[i-1]

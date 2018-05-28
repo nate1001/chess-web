@@ -1,3 +1,7 @@
+
+import random
+
+#package
 from sanic import Sanic
 from sanic.response import json
 from sanic import response
@@ -8,29 +12,47 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import chess
 import chess.svg
 
+#local
+import svgboard
+from svgboard import SvgBoard
+from heatmap import Heatmap
 import db
-ROOT = '/home/lukehand/src/chess/web/'
 
+ROOT = '/home/lukehand/src/chess/web/'
 env = Environment(
     loader=FileSystemLoader(ROOT + 'views/'),
     autoescape=select_autoescape(['html', 'xml'])
 )
+heatmapgen = Heatmap()
 
-import random
 def randomize():
     return '?' + str(random.randint(1, 1000000))
 
 def svg(pos, id=None, keysquares=None, size=400):
-    return pos.svg(id=pos.id, size=size)
 
-def svg_fen(board, querykey=[], size=400, **kwargs):
+    svg = SvgBoard(size=size, labels=False)
+    for score, square, piece in zip(pos.scores, pos.squares, pos.pieces):
+        svg.add_piece(square, piece)
+        if square in pos.keysquares:
+            if hasattr(pos, 'querysquares') and square in pos.querysquares:
+                print(44, pos.querysquares)
+                svg.add_circle(square, stroke='green')
+            else:
+                svg.add_circle(square)
 
-    circles = []
-    for square in querykey:
-        circles.append((square, square))
+        color = heatmapgen.color(score)
+        if color:
+            svg.set_square_color(square, color)
+    svg.add_legend()
+    if not hasattr(pos, 'distance'):
+        pos.distance=None
+    svg.add_title("{} {} {} {}".format(pos.side, pos.distance, round(pos.score*.01, 2), pos.site))
+    svg.add_caption("{}".format(pos.board.fen()))
+    #svg.add_arrow(0, 16)
+    #svg.add_title("HELLO", 'http://example.com')
+    #svg.add_caption("bye")
+    return svg.tostring()
 
-    txt = chess.svg.board(board, arrows=circles, size=size, **kwargs)
-    return txt
 
 def fmt_ps(pieces, squares):
     l = []
@@ -40,7 +62,6 @@ def fmt_ps(pieces, squares):
 
 env.globals['randomize'] = randomize
 env.globals['svg'] = svg
-env.globals['svg_fen'] = svg_fen
 env.globals['fmt_ps'] = fmt_ps
 
 app = Sanic()
@@ -57,8 +78,7 @@ async def test(request):
 
 @app.route("/test")
 async def test(request):
-    import svg2
-    svg = svg2.basic_shapes().tostring()
+    svg = svgboard.basic_shapes().tostring()
     t = env.get_template("test.jinja")
     return response.html(t.render(svg=svg))
 
@@ -68,19 +88,11 @@ async def search(request):
     for i, row in enumerate(db.Query.random_search()):
         row.id = i
         l.append(row)
-    query = l[0].queryboard
-    querytxt = l[0].querykey
 
-    querykey = []
-    try:
-        for p in l[0].querykey[1:-1].split(","):
-            querykey.append(chess.SQUARE_NAMES.index(p[1:]))
-    except ValueError:
-        for p in l[0].querykey[1:-1].split("' & '"):
-            querykey.append(chess.SQUARE_NAMES.index(p[1:]))
+    query = db.Query.select_fen(l[0].queryboard.fen())
 
     t = env.get_template("index.jinja")
-    return response.html(t.render(query=query, querykey=querykey, querytxt=querytxt, results=l))
+    return response.html(t.render(query=query, results=l))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
