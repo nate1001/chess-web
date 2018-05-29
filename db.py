@@ -1,11 +1,14 @@
 import psycopg2
 import psycopg2.extras
+import psycopg2.extensions
 
 import chess
 import chess.svg
 
+#local
+from svgboard import SvgBoard
 from heatmap import Heatmap
- 
+
 class Connection:
     conn_string = "host='localhost' dbname='chess' user='www-data' password='NULL'"
     conn = None
@@ -22,6 +25,75 @@ class Connection:
     def execute(cls, cursor, query, *params):
         cursor.execute(query, params)
         return cursor.rowcount, cursor
+
+    @classmethod
+    def get_type_oid(cls, name):
+        curs = cls.cursor()
+        n, curs = cls.execute(curs, 'select oid from pg_type where typname = %s', name)
+        if n==0:
+            raise ValueError("could not find type {}".format(name))
+        return curs.fetchone()['oid']
+
+    @classmethod
+    def register_type(cls, name, func):
+        oids = (Connection.get_type_oid(name),) 
+        f = psycopg2.extensions.new_type(oids, name, func)
+        psycopg2.extensions.register_type(f)
+        oids = (Connection.get_type_oid("_"+name),) 
+        f = psycopg2.extensions.new_array_type(oids, "_"+name, f)
+        psycopg2.extensions.register_type(f)
+
+
+Connection.connect()
+
+class PieceSquare:
+    def __init__(self, val):
+
+        self.piece = chess.Piece.from_symbol(val[0])
+        self.square = chess.SQUARE_NAMES.index(val[1:])
+
+    def __str__(self):
+        return '{}{}'.format(self.piece, chess.SQUARE_NAMES[self.square])
+
+    def __repr__(self):
+        return self.__str__()
+
+class PieceSquareSubject:
+
+    def __init__(self, val):
+        val = list(val)
+        self.subject = chess.Piece.from_symbol(val.pop(0))
+        self.kind = val.pop(0)
+        self.piece = chess.Piece.from_symbol(val.pop(0))
+        self.square = chess.SQUARE_NAMES.index(''.join(val))
+
+    def __str__(self):
+        return '{}{}{}{}'.format(
+                self.subject, self.kind, self.piece, chess.SQUARE_NAMES[self.square])
+
+    def __repr__(self):
+        return self.__str__()
+
+
+def db_to_square(val, curs):
+    return chess.SQUARE_NAMES.index(val)
+Connection.register_type("square", db_to_square)
+
+def db_to_cpiece(val, curs):
+    return chess.Piece.from_symbol(val)
+Connection.register_type("cpiece", db_to_cpiece)
+
+def db_to_board(val, curs):
+    return chess.Board(val + ' 1 1')
+Connection.register_type("board", db_to_board)
+
+def db_to_piecesquare(val, curs):
+    for v in '>/-':
+        if v in val:
+            return PieceSquareSubject(val)
+    return PieceSquare(val)
+
+Connection.register_type("piecesquare", db_to_piecesquare)
 
 
 class Query(Connection):
@@ -53,62 +125,34 @@ class Query(Connection):
 
 
 class Position(Connection):
-    '''
-    DROP VIEW IF EXISTS v_position;
-    CREATE VIEW v_position AS
-        SELECT 
-             site
-            ,fen
-            ,side(fen)
-            ,score
-            ,scores
-            ,pieces(fen)::square[] AS squares
-            ,pieces(fen)::cpiece[]
-            ,keypieces::square[] AS keysquares
-            ,keypieces::cpiece[]
-        FROM POSITION p
-    ;
-    '''
-    heatgen = Heatmap()
 
-    def _iter_array(self, array):
-
-        for piece in array[1:-1].split(','):
-            yield piece
-
-    def _parse_pieces(self, pieces):
-        l = []
-        for p in self._iter_array(pieces):
-            l.append(chess.Piece.from_symbol(p))
-        return l
-
-    def _parse_squares(self, squares):
-        l = []
-        for s in self._iter_array(squares):
-            l.append(chess.SQUARE_NAMES.index(s))
-        return l
-
+    heatmapgen = Heatmap()
 
     def __init__(self, row):
         self.id = None
         self.site = row['site']
-        self.board = chess.Board(row['fen'] + ' 1 1')
-        self.side = row['side']
+        self.board = row['fen']
         self.score = row['score']
         self.scores = row['scores']
+        self.keypieces = row['keypieces']
+        self.attacks = row['attacks']
 
-        self.squares = self._parse_squares(row['squares'])
-        self.pieces = self._parse_pieces(row['pieces'])
-        self.keysquares = self._parse_squares(row['keysquares'])
-        self.keypieces = self._parse_pieces(row['keypieces'])
+        if self.board.turn:
+            self.side = 'w'
+        else:
+            self.side = 'b'
 
-        self.heatmap = {}
-        for square, color in zip(self.keysquares, self.heatgen.gen(self)):
-            name = chess.SQUARE_NAMES[square]
-            self.heatmap[name] = color
 
     def __str__(self):
         return "<Position '{}'>".format(self.board.fen())
+
+    def _iter_piecesquares(self):
+        for i in range(64):
+            bb = (56 - (i//8)*8 + (i%8))
+            p = self.board.piece_at(bb)
+            if p:
+                yield bb, p
+
 
     def squareset(self, piecesquares):
         #board = chess.Board(board_fen=None)
@@ -119,45 +163,42 @@ class Position(Connection):
             #board.set_piece_at(d, p)
             s.add(sq)
         return s
+
+    def to_svg(self, size, labels=False):
+        svg = SvgBoard(size=size, labels=labels)
+
+        for score, (square, piece) in zip(self.scores, self._iter_piecesquares()):
+            svg.add_piece(square, piece)
+            if square in [k.square for k in self.keypieces]:
+                if hasattr(self, 'querykey') and square in [s.square for s in self.querykey]:
+                    svg.add_circle(square, stroke='green')
+                else:
+                    svg.add_circle(square)
+
+            color = self.heatmapgen.color(score)
+            if color:
+                svg.set_square_color(square, color)
+        svg.add_legend()
+        if not hasattr(self, 'distance'):
+            self.distance=None
+        svg.add_title("{} {} {} {}".format(self.side, self.distance, round(self.score*.01, 2), self.site))
+        svg.add_caption("{}".format(self.board.fen()))
+        #svg.add_arrow(0, 16)
+        #svg.add_title("HELLO", 'http://example.com')
+        #svg.add_caption("bye")
+        return svg.tostring()
     
 
 class PositionResult(Position):
-    '''
-    DROP TYPE t_search_result cascade;
-    CREATE TYPE t_search_result AS
-    (
-         queryboard board
-        ,querykey   piecesquare[]
-        ,distance   double precision
-        ,site       text
-        ,fen        board
-        ,side       side
-        ,score      real
-        ,scores     real[]
-        ,squares    square[]
-        ,pieces     cpiece[]
-        ,keysquares square[]
-        ,keypieces  cpiece[]
-    );
-    '''
     def __init__(self, row):
         super().__init__(row)
         self.distance = round(row['distance'], 3)
         self.querykey = row['querykey']
-        self.queryboard = chess.Board(row['queryboard'] + ' 1 1')
-
-        s = [chess.SQUARE_NAMES.index(p[1:]) for p in self.querykey[1:-1].split(',')]
-        self.querysquares = s
+        self.queryboard = row['queryboard'] 
 
     def __str__(self):
         return "<PositionResult '{}'>".format(self.board.fen())
 
 
-
-Connection.connect()
-
-pos = Query.random_position()
-if pos is None:
-    raise ValueError
 
 

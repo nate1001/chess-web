@@ -5,12 +5,12 @@
     <script src="s/js/jquery-1.10.1.min.js"></script>
     <script src="s/js/chessboard.js"></script>
 
-    {{ svg(query) }}
+    {{ query.to_svg(400) }}
 
     <br/>
     {% for pos in results %}
         <div style='float:left'>
-            {{ svg(pos, 50) }}
+            {{ pos.to_svg(300) }}
         </div>
     {% endfor %}
 
