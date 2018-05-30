@@ -55,9 +55,13 @@ async def search(request):
     l = []
     for i, row in enumerate(db.Query.random_search()):
         l.append(row)
-    query = db.Query.select_fen(l[0].queryboard.fen())
-    t = env.get_template("index.jinja")
-    return response.html(t.render(query=query, results=l))
+    if not l:
+        t = env.get_template("no_results.jinja")
+        return response.html(t.render())
+    else:
+        query = db.Query.select_fen(l[0].queryboard.fen())
+        t = env.get_template("index.jinja")
+        return response.html(t.render(query=query, results=l))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

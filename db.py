@@ -58,6 +58,9 @@ class PieceSquare:
     def __repr__(self):
         return self.__str__()
 
+    def __eq__(self, other):
+        return self.piece==other.piece and self.square==other.square
+
 class PieceSquareSubject:
 
     def __init__(self, val):
@@ -73,6 +76,7 @@ class PieceSquareSubject:
 
     def __repr__(self):
         return self.__str__()
+    
 
 
 def db_to_square(val, curs):
@@ -88,6 +92,8 @@ def db_to_board(val, curs):
 Connection.register_type("board", db_to_board)
 
 def db_to_piecesquare(val, curs):
+    if val[0] == '+':
+        return PieceSquare(val[1:])
     for v in '>/-':
         if v in val:
             return PieceSquareSubject(val)
@@ -128,6 +134,12 @@ class Position(Connection):
 
     heatmapgen = Heatmap()
 
+    green = ['#f7fcfd', '#e5f5f9', '#ccece6', '#99d8c9', '#66c2a4', '#41ae76', '#238b45', '#006d2c', '#00441b',]
+    red = ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026',]
+    red.reverse()
+
+    colors = red + ['#ffffff'] + green
+
     def __init__(self, row):
         self.id = None
         self.site = row['site']
@@ -135,7 +147,9 @@ class Position(Connection):
         self.score = row['score']
         self.scores = row['scores']
         self.keypieces = row['keypieces']
-        self.attacks = row['attacks']
+        self.mobility = row['mobility']
+        self.diff = row['diff']
+        #self.attacks = row['attacks']
 
         if self.board.turn:
             self.side = 'w'
@@ -164,20 +178,30 @@ class Position(Connection):
             s.add(sq)
         return s
 
-    def to_svg(self, size, labels=False):
+    def to_svg(self, size, query=None, labels=False):
         svg = SvgBoard(size=size, labels=labels)
 
         for score, (square, piece) in zip(self.scores, self._iter_piecesquares()):
             svg.add_piece(square, piece)
-            if square in [k.square for k in self.keypieces]:
-                if hasattr(self, 'querykey') and square in [s.square for s in self.querykey]:
-                    svg.add_circle(square, stroke='green')
-                else:
-                    svg.add_circle(square)
+            #if square in [k.square for k in self.keypieces]:
+            #    if 0:#piecesquareif hasattr(self, 'querykey') and square in [s.square for s in self.querykey]:
+            #        svg.add_circle(square, stroke='green')
+            #    else:
+            #        svg.add_circle(square)
+            if query:
+                for square, val in self.occupancy_map(query).items():
+                    if val > 0:
+                     svg.add_circle(square, stroke='green')
+                for square, val in self.mobility_map(query).items():
+                    if val > 0:
+                         svg.set_square_color(square, self.green[val])
+                    if val < 0:
+                         svg.set_square_color(square, self.red[val])
 
-            color = self.heatmapgen.color(score)
-            if color:
-                svg.set_square_color(square, color)
+            #color = self.heatmapgen.color(score)
+            #if color:
+            #    svg.set_square_color(square, color)
+
         svg.add_legend()
         if not hasattr(self, 'distance'):
             self.distance=None
@@ -187,6 +211,37 @@ class Position(Connection):
         #svg.add_title("HELLO", 'http://example.com')
         #svg.add_caption("bye")
         return svg.tostring()
+
+    def occupancy_map(self, query):
+        d = {}
+        for i in range(64):
+            d[i] = 0
+            p  = self.board.piece_at(i)
+            q  = query.board.piece_at(i)
+            if q:
+                if q == p:
+                    d[i] += 1
+                else:
+                    d[i] -= 1
+            elif p:
+                d[i] -= 1
+        return d
+
+    def mobility_map(self, query):
+        d = {}
+        for i in range(64):
+            d[i] = 0
+    
+        for ps in query.mobility:
+            if ps in self.mobility:
+                d[ps.square] += 1
+            else:
+                d[ps.square] -= 1
+        for ps in self.mobility:
+            if ps not in query.mobility:
+                d[ps.square] -= 1
+
+        return d
     
 
 class PositionResult(Position):
@@ -198,6 +253,13 @@ class PositionResult(Position):
 
     def __str__(self):
         return "<PositionResult '{}'>".format(self.board.fen())
+
+#l = []
+#for row in Query.random_search():
+#    l.append(row)
+#query = Query.select_fen(l[0].queryboard.fen())
+#print(l[0].mobility_map(query).values())
+#print(l[0].to_svg(400, query))
 
 
 

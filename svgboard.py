@@ -26,7 +26,7 @@ class SvgBoard:
         .blacksquare { fill:  #f2f2f2; }
         .whitesquare { fill: #b3b3b3; }
 
-        .blacksquare { fill:  #e6e6e6; stroke:black; stroke-width:.1px; }
+        .blacksquare { fill:  #f5f5f5; stroke:black; stroke-width:.1px; }
         .whitesquare { fill: none; stroke:gray; stroke-width:.2px; }
 
         a {fill : blue }

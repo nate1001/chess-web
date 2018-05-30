@@ -10,7 +10,7 @@
     <br/>
     {% for pos in results %}
         <div style='float:left'>
-            {{ pos.to_svg(300) }}
+            {{ pos.to_svg(300, query=query) }}
         </div>
     {% endfor %}
 
