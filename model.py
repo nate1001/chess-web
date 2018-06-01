@@ -1,120 +1,31 @@
+
+#package
 import psycopg2
 import psycopg2.extras
 import psycopg2.extensions
 
 import chess
-import chess.svg
 
 #local
-from svgboard import SvgBoard
-from heatmap import Heatmap
 
-class Connection:
-    conn_string = "host='localhost' dbname='chess' user='www-data' password='NULL'"
-    conn = None
-
-    @classmethod
-    def connect(cls):
-        cls.conn = psycopg2.connect(cls.conn_string)
-
-    @classmethod
-    def cursor(cls):
-        return cls.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    @classmethod
-    def execute(cls, cursor, query, *params):
-        cursor.execute(query, params)
-        return cursor.rowcount, cursor
-
-    @classmethod
-    def get_type_oid(cls, name):
-        curs = cls.cursor()
-        n, curs = cls.execute(curs, 'select oid from pg_type where typname = %s', name)
-        if n==0:
-            raise ValueError("could not find type {}".format(name))
-        return curs.fetchone()['oid']
-
-    @classmethod
-    def register_type(cls, name, func):
-        oids = (Connection.get_type_oid(name),) 
-        f = psycopg2.extensions.new_type(oids, name, func)
-        psycopg2.extensions.register_type(f)
-        oids = (Connection.get_type_oid("_"+name),) 
-        f = psycopg2.extensions.new_array_type(oids, "_"+name, f)
-        psycopg2.extensions.register_type(f)
-
-
-Connection.connect()
-
-class PieceSquare:
-    def __init__(self, val):
-
-        self.piece = chess.Piece.from_symbol(val[0])
-        self.square = chess.SQUARE_NAMES.index(val[1:])
-
-    def __str__(self):
-        return '{}{}'.format(self.piece, chess.SQUARE_NAMES[self.square])
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __eq__(self, other):
-        return self.piece==other.piece and self.square==other.square
-
-class PieceSquareSubject:
-
-    def __init__(self, val):
-        val = list(val)
-        self.subject = chess.Piece.from_symbol(val.pop(0))
-        self.kind = val.pop(0)
-        self.piece = chess.Piece.from_symbol(val.pop(0))
-        self.square = chess.SQUARE_NAMES.index(''.join(val))
-
-    def __str__(self):
-        return '{}{}{}{}'.format(
-                self.subject, self.kind, self.piece, chess.SQUARE_NAMES[self.square])
-
-    def __repr__(self):
-        return self.__str__()
-    
-
-
-def db_to_square(val, curs):
-    return chess.SQUARE_NAMES.index(val)
-Connection.register_type("square", db_to_square)
-
-def db_to_cpiece(val, curs):
-    return chess.Piece.from_symbol(val)
-Connection.register_type("cpiece", db_to_cpiece)
-
-def db_to_board(val, curs):
-    return chess.Board(val + ' 1 1')
-Connection.register_type("board", db_to_board)
-
-def db_to_piecesquare(val, curs):
-    if val[0] == '+':
-        return PieceSquare(val[1:])
-    for v in '>/-':
-        if v in val:
-            return PieceSquareSubject(val)
-    return PieceSquare(val)
-
-Connection.register_type("piecesquare", db_to_piecesquare)
-
+import sys
+sys.path.append('../pgchess')
+from db import Connection
+Connection.connect('www-data')
 
 class Query(Connection):
 
     @classmethod
     def random_search(cls):
         c = Connection.cursor()
-        n, rows = cls.execute(c, "select * from random_search()")
+        n, rows = cls.execute("select * from random_search()")
         for row in rows:
             yield PositionResult(row)
 
     @classmethod
     def random_position(cls):
         c = Connection.cursor()
-        n, rows = cls.execute(c, "select * from v_position order by random() limit 1")
+        n, rows = cls.execute("select * from v_position order by random() limit 1")
         if n == 0:
             return None
         for row in rows:
@@ -124,26 +35,31 @@ class Query(Connection):
     def select_fen(cls, fen):
 
         c = Connection.cursor()
-        n, rows = cls.execute(c, "select * from v_position where fen=%s limit 1", fen)
+        n, rows = cls.execute("select * from v_position where fen=%s limit 1", fen)
         if n == 0:
             return None
         return Position(rows.fetchone())
 
+    @classmethod
+    def canonical_pawns(cls):
+        n, rows = cls.execute('SELECT n, board FROM kmode ORDER BY pcount(board) DESC, pawn_distance(board)')
+        return rows.fetchall()
+
 
 class Position(Connection):
 
-    heatmapgen = Heatmap()
+    #heatmapgen = Heatmap()
 
     green = ['#f7fcfd', '#e5f5f9', '#ccece6', '#99d8c9', '#66c2a4', '#41ae76', '#238b45', '#006d2c', '#00441b',]
     red = ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026',]
     red.reverse()
-
     colors = red + ['#ffffff'] + green
 
     def __init__(self, row):
         self.id = None
         self.site = row['site']
         self.board = row['fen']
+
         self.score = row['score']
         self.scores = row['scores']
         self.keypieces = row['keypieces']
@@ -156,16 +72,8 @@ class Position(Connection):
         else:
             self.side = 'b'
 
-
     def __str__(self):
         return "<Position '{}'>".format(self.board.fen())
-
-    def _iter_piecesquares(self):
-        for i in range(64):
-            bb = (56 - (i//8)*8 + (i%8))
-            p = self.board.piece_at(bb)
-            if p:
-                yield bb, p
 
 
     def squareset(self, piecesquares):
@@ -254,12 +162,10 @@ class PositionResult(Position):
     def __str__(self):
         return "<PositionResult '{}'>".format(self.board.fen())
 
-#l = []
-#for row in Query.random_search():
-#    l.append(row)
-#query = Query.select_fen(l[0].queryboard.fen())
-#print(l[0].mobility_map(query).values())
-#print(l[0].to_svg(400, query))
+l = []
+for row in Query.canonical_pawns():
+    l.append(row)
+print(l)
 
 
 

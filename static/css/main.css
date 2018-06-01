@@ -1,6 +1,41 @@
 
-body {
-font-family: Consolas, monospace;
+* {
+        margin:  0; 
+        padding: 0; 
+        font-family: "Consolas", mono-space; 
+        line-height: 1.5;
+        color:#1e1e2f;
+
+        /*background: #efeff5;*/
+}
+
+h1,p,ul {
+    padding: 1em;
+    margin: .5em;
+}
+
+li {
+    padding: .5em;
+    margin-left: 1em;
+}
+
+a {
+    color: #52527a;
+}
+h1 a {
+    text-decoration: none;
+}
+
+
+
+#header_title{ 
+    font-size: smaller; 
+}
+
+.board_header {
+  color: #0099e6;
+  margin-left: 1em;
+
 }
 
 /* white square */

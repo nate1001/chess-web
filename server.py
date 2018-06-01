@@ -13,7 +13,7 @@ import chess
 import chess.svg
 
 #local
-import db
+from model import Query
 
 ROOT = '/home/lukehand/src/chess/web/'
 env = Environment(
@@ -36,30 +36,29 @@ app = Sanic()
 app.static('/s/', './static')
 app.static('/img/', './static/img')
 app.static('/svg/', './static/svg')
+app.static('/favicon.ico', './static/img/favicon.ico')
 
 @app.route("/")
-async def test(request):
+async def index(request):
+    t = env.get_template("index.jinja")
+    return response.html(t.render())
 
-    pos = db.Query.random_position()
-    t = env.get_template("single.jinja")
-    return response.html(t.render(pos=pos))
-
-@app.route("/test")
-async def test(request):
-    svg = svgboard.basic_shapes().tostring()
-    t = env.get_template("test.jinja")
-    return response.html(t.render(svg=svg))
+@app.route("/kmode")
+async def kmode(request):
+    t = env.get_template("kmode.jinja")
+    rows = Query.canonical_pawns()
+    return response.html(t.render(rows=rows))
 
 @app.route("/search")
 async def search(request):
     l = []
-    for i, row in enumerate(db.Query.random_search()):
+    for i, row in enumerate(Query.random_search()):
         l.append(row)
     if not l:
         t = env.get_template("no_results.jinja")
         return response.html(t.render())
     else:
-        query = db.Query.select_fen(l[0].queryboard.fen())
+        query = Query.select_fen(l[0].queryboard.fen())
         t = env.get_template("index.jinja")
         return response.html(t.render(query=query, results=l))
 

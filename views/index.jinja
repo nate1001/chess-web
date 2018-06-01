@@ -1,19 +1,12 @@
-{% include "header.jinja" %}
-<body>
-    <h1>The Chess Index</h1>
-    <script src="s/js/json3.min.js"></script>
-    <script src="s/js/jquery-1.10.1.min.js"></script>
-    <script src="s/js/chessboard.js"></script>
+{% extends "base.jinja" %}
+{% block title %}Stastical Learning in Chess{% endblock %}
+{% block title2 %}Contents{% endblock %}
+{% block content %}
 
-    {{ query.to_svg(400) }}
+    <ul>
+    <li><a href='kmode'>canonical pawn positions</a></li>
+    <li><a href='search'>search similar positions</a></li>
+    </ul>
 
-    <br/>
-    {% for pos in results %}
-        <div style='float:left'>
-            {{ pos.to_svg(300, query=query) }}
-        </div>
-    {% endfor %}
+{% endblock %}
 
-the end
-</body>
-</html>

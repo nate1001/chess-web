@@ -1,0 +1,14 @@
+{% extends "base.jinja" %}
+{% block title %}Canonical Pawns{% endblock %}
+{% block title2 %}Kmode Pawn Centroids{% endblock %}
+{% block content %}
+    {% for row in rows%}
+        <div style='float:left'>
+        <span class='board_header'>n={{row['n']}}</span>
+        <br/>
+            {{ row['board'].to_svg(250).tostring() }}
+        </div>
+    {% endfor %}
+
+{% endblock %}
+
