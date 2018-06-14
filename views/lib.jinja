@@ -1,20 +1,41 @@
 
+
+{% macro lichess_game(game) -%}
+<div class='game_header'>
+    <iframe style='float:left' src="https://lichess.org/embed/{{game.site}}?theme=grey&bg=auto"
+    width=600 height=400 frameborder=0></iframe>
+</div>
+
+{%- endmacro %}
+
 {% macro board(fen, px=400, id='', float=False) -%}
 
     {% if float %}
-        <div id="board{{ id }}" style="width: {{ px }}px; float: left; margin-right: 10px; margin-bottom: 10px "></div>
+        <div id="board{{ id }}" style="width: {{ px }}px; float: left; margin-right: 10px; "></div>
     {% else %}
         <div id="board{{ id }}" style="width: {{ px }}px;"></div>
     {% endif %}
 
     <script>
-
         var cfg = { // config is global
           showNotation: false,
         };
-
         var init = function() {var board = ChessBoard('board{{ id }}', cfg); board.position('{{ fen }}');};
-          
+        $(document).ready(init);
+    </script>
+
+{%- endmacro %}
+
+{% macro multi_board(pos, id, px=250) -%}
+
+    <div id="board{{ id }}" style="width: {{ px }}px; float: left; margin-right: 20px;">
+    hi
+    </div>
+    <script>
+        var cfg = { // config is global
+          showNotation: false,
+        };
+        var init = function() {var board = ChessBoard('board{{ id }}', cfg); board.position('{{ pos.fen }}');};
         $(document).ready(init);
     </script>
 

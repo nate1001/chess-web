@@ -1,0 +1,32 @@
+
+
+{% extends "base.jinja" %}
+{% block title %}Kmode class={{rows[0].id}}{% endblock %}
+{% block title2 %}{% endblock %}
+{% block content %}
+
+<div style='float:left'>
+<h3>
+<p>
+    <br/>
+        pawn centroid # {{ rows[0].pclass  }}
+    </br/>
+        count {{ rows[0].count }}
+    </br/>
+        avg {{ rows[0].avg}}
+    </br/>
+        stddev {{ rows[0].stddev }}
+</p>
+</h3>
+</div>
+
+<div style='float:right;'>
+{{ rows[0].board.to_svg(400).tostring() }}
+<div>
+
+{% for pos in rows %}
+       {{ pos.to_svg(250) }}
+{% endfor %}
+
+{% endblock %}
+

@@ -2,11 +2,19 @@
 {% block title %}Canonical Pawns{% endblock %}
 {% block title2 %}Kmode Pawn Centroids{% endblock %}
 {% block content %}
-    {% for row in rows%}
+    {% for centroid in rows%}
         <div style='float:left'>
-        <span class='board_header'>n={{row['n']}}</span>
+        <span class='board_header'>
+             <a href=/kmode/{{centroid.pclass}}>id={{centroid.pclass}}</a> 
+             n={{centroid.count}} 
+             avg={{centroid.avg}} 
+             sd={{centroid.stddev}}
+             </br>
+             win={{centroid.win}}
+             rating={{centroid.rating}}
+         </span>
         <br/>
-            {{ row['board'].to_svg(250).tostring() }}
+            {{ centroid.to_svg(250)}}
         </div>
     {% endfor %}
 

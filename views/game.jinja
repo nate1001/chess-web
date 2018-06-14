@@ -1,0 +1,32 @@
+
+{% extends "base.jinja" %}
+{% block title %}{{game.title()}}{% endblock %}
+{% block title2 %}{{game.title()}}{% endblock %}
+{% block content %}
+
+<div style='float:left'>
+<h3>
+    {{ game.subtitle() }}
+    <br/>
+    pawn centroid # {{ game.pclass }}
+    </br/>
+    middle game at # {{game.mg_halfmove }}
+    <a href='http://lichess.org/{{game.site}}'>{{game.site}}</a>
+    
+</h3>
+</div>
+
+<div style='float:right;'>
+{{ game.pawn_centr.to_svg(400, title='%s' % game.pclass).tostring() }}
+<div>
+
+{% for pos in game %}
+    {% if game.mg_halfmove == pos.halfmovenum %}
+       {{ pos.to_svg(250, title='%s %s middlegame' % (pos.movenum, pos.similar), comp=game.pawn_centr) }}
+    {% else %}
+       {{ pos.to_svg(250, title='%s %s' % (pos.movenum, pos.similar), comp=game.pawn_centr) }}
+    {% endif %}
+{% endfor %}
+
+{% endblock %}
+
