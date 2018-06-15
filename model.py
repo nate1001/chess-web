@@ -66,8 +66,10 @@ class Query(Connection):
     @classmethod
     def canonical_pawns(cls):
         n, rows = cls.execute('SELECT * from m_kmode_agg order by count desc')
+        l = []
         for row in rows:
-            yield Centroid(row)
+            l.append(Centroid(row))
+        return l
 
     @classmethod
     @timeit
@@ -99,14 +101,17 @@ class Centroid:
 
 
 class CentroidPos(Centroid):
+    @timeit
     def __init__(self, row):
         super().__init__(row)
-        self.similar = row['distance']
+        self.hamming = row['hamming']
+        self.jaccard = round(row['jaccard'], 2)
         self.position = row['pawns']
+        self.site = row['site']
 
     @timeit
     def to_svg(self, size):
-        return self.position.to_svg(size, comp=self.board, title=self.similar).tostring()
+        return self.position.to_svg(size, comp=self.board).tostring()
 
 
 class Position(Connection):

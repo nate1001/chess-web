@@ -20,12 +20,21 @@
 </h3>
 </div>
 
-<div style='float:right;'>
+<div style='float:left;'>
 {{ rows[0].board.to_svg(400).tostring() }}
-<div>
+</div>
 
+<div style='clear:both;'/>
 {% for pos in rows %}
-       {{ pos.to_svg(250) }}
+
+  <div style='float:left;'>
+    <span class='board_header'>
+      {{pos.site}} {{pos.hamming}} {{pos.jaccard}}
+    </span>
+    <br/>
+        {{ pos.to_svg(250)}}
+    </div>
+
 {% endfor %}
 
 {% endblock %}
