@@ -10,7 +10,7 @@ import chess
 #local
 
 import sys
-sys.path.append('../pgchess')
+sys.path.append('../db')
 from db import Connection
 from svgboard import SvgBoard
 
@@ -30,6 +30,14 @@ def timeit(f):
     return timed
 
 class Query(Connection):
+
+    @classmethod
+    def _execute_all(cls, query, klass, *args):
+        n, rows = cls.execute(query, *args)
+        l = []
+        for row in rows:
+            l.append(klass(row))
+        return l
 
     @classmethod
     def random_search(cls):
@@ -80,16 +88,116 @@ class Query(Connection):
             l.append(CentroidPos(row))
         return l
 
+    @classmethod
+    def eco_agg(self, pclass, opening=False, var=False):
+
+        if var:
+            table = 'v_eco_var'
+        elif opening:
+            table = 'v_eco_opening'
+        else:
+            table = 'v_eco_system'
+
+        n, rows = Connection.execute('select * from {} where pclass=%s'.format(table), pclass)
+        l = []
+        for row in rows:
+            l.append(EcoAgg(row))
+        return l
+
+    @classmethod
+    def openings(cls):
+        return cls._execute_all('SELECT * from v_opening_name', Opening)
+
+    @classmethod
+    def opening(cls, name):
+        q = "SELECT * FROM v_opening_var3_agg WHERE name = %s"
+        openings = cls._execute_all(q, Opening, name)
+        if not openings:
+            return
+        return openings
+
+    @classmethod
+    def opening_var(cls, number):
+        q = "SELECT * FROM v_opening_var3_agg WHERE openingid = %s"
+        opening = cls._execute_all(q, Opening, number)
+        if not opening:
+            return None, None
+        q = "SELECT * FROM v_game_lastmove WHERE openingid = %s order by random() limit 50"
+        games = cls._execute_all(q, Game, number)
+        return opening[0], games
+
+class System:
+    def __init__(self, name, openings):
+        keys = set()
+        self.name = name
+        self.openings = {}
+
+        for o in openings:
+            keys.add(o.key)
+
+        for k in keys:
+            self.openings[k] = []
+            last = None
+            for o in openings:
+                if last and last.key_var:
+                    last.same_key_var = last.var == o.var and o.key_var
+                if o.key == k:
+                    self.openings[k].append(o)
+                last = o
+        
+        self.keys = sorted(self.openings.keys())
+
+class Opening:
+    def __init__(self, row):
+        #self.ecoid = row['ecoid']
+        self.eco = row['eco'][:3]
+        self.id = row['openingid']
+        self.opening = row['name']
+        self.var1 = row['var1'] or ''
+        self.var2 = row['var2'] or ''
+        self.var3 = row['var3'] or ''
+        self.board = row['fen']
+        self.moves = row['moves']
+        self.halfmoves = row['halfmoves']
+        self.system_cnt = row['system_cnt']
+        self.rating_mu = row['rating_mu']
+        self.win = row['win%']
+
+        self.key = '{}, {}'.format(self.opening, self.var1)
+        self.key_opening = not self.var1
+        self.key_var = not self.var2
+        self.name = ', '.join([n for n in [self.var1, self.var2, self.var3] if n])
+        self.subname = ', '.join([n for n in [self.var2, self.var3] if n])
+        self.same_key_var = None
+        self.same_var = None
+
+    def __str__(self):
+        return "<Opening {} {}: {}:{},{},{}>".format(
+                self.eco, self.system, self.opening,
+                self.var, self.subvar, self.subsubvar)
+
+
+class EcoAgg:
+    def __init__(self, row):
+        self.count = row['count']
+        self.klass = row['pclass']
+        self.system = row['meta']
+        if 'opening' in row.keys():
+            self.opening = row['opening']
+        if 'var' in row.keys():
+            self.var = row['var']
+
 class Centroid:
 
     def __init__(self, row):
         self.count = row['count']
         self.pclass = row['pclass']
-        self.avg = row['avg']
-        self.stddev = row['stddev']
+        self.avg = round(row['avg'], 1)
+        self.stddev = round(row['stddev'], 1)
         self.board = row['pawn_centr']
 
         if 'win' in row.keys():
+            self.eco = row['systems']
             self.win = round(row['win'], 2)
             self.draw = row['draw']
             self.lose = row['lose']
@@ -101,7 +209,6 @@ class Centroid:
 
 
 class CentroidPos(Centroid):
-    @timeit
     def __init__(self, row):
         super().__init__(row)
         self.hamming = row['hamming']
@@ -109,7 +216,6 @@ class CentroidPos(Centroid):
         self.position = row['pawns']
         self.site = row['site']
 
-    @timeit
     def to_svg(self, size):
         return self.position.to_svg(size, comp=self.board).tostring()
 
@@ -283,7 +389,7 @@ class Game:
  brating       | integer      |           |          | 
  time_control  | text         |           |          | 
  moves         | text         |           |          | 
- mg_halfmove   | integer      |           |          | 
+ #mg_halfmove   | integer      |           |          | 
  eg_halfmove   | integer      |           |          | 
  last_halfmove | integer      |           |          | 
     '''
@@ -304,10 +410,26 @@ class Game:
         self.brating = row['brating']
         self.time_control = row['time_control']
         self.moves = row['moves']
-        self.mg_halfmove = row['mg_halfmove']
-        self.eg_halfmove = row['eg_halfmove']
-        self.pawn_centr = row['pawn_centr']
-        self.pclass = row['pclass']
+        self.board = row['fen']
+        #self.mg_halfmove = row['mg_halfmove']
+        #self.eg_halfmove = row['eg_halfmove']
+        #self.pawn_centr = row['pawn_centr']
+        #self.pclass = row['pclass']
+
+        self.h1 = "{} ({})  {} ({})".format(
+                self.wplayer, self.wdiff,
+                self.bplayer, self.bdiff)
+
+        if len(self.wplayer) > len(self.bplayer):
+            self.bplayer += '&nbsp;'*(len(self.wplayer) - len(self.bplayer))
+        elif len(self.bplayer) > len(self.wplayer):
+            self.wplayer += '&nbsp;'*(len(self.bplayer) - len(self.wplayer))
+
+        self.white = "{} ({}) {}".format(self.wplayer, self.wdiff, self.wrating)
+        self.black = "{} ({}) {}".format(self.bplayer, self.bdiff, self.brating)
+        self.h2 = "{} {}".format(self.time_control, self.result)
+
+
 
     def __str__(self):
         return "<Game '{}'>".format(self.title())
@@ -340,5 +462,9 @@ class Game:
 #    l.append(row)
 #print(l)
 
-game = Query.random_game()
-print(game)
+#game = Query.random_game()
+#print(game)
+
+
+
+

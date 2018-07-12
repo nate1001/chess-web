@@ -9,15 +9,27 @@
         /*background: #efeff5;*/
 }
 
-h1,p,ul {
+td.number {
+    text-align: right;
+    padding-left: 1em;
+}
+
+
+h1,p {
     padding: 1em;
     margin: .5em;
 }
 
-li {
-    padding: .5em;
-    margin-left: 1em;
+td, table, h3, h4, h5, ul  {
+    padding: .2em;
+    margin-left: 1%;
 }
+
+h3, h4, h5 {
+    padding-left: 2em;
+    padding-bottom: .5em;
+}
+
 
 a {
     color: #52527a;
@@ -25,8 +37,6 @@ a {
 h1 a {
     text-decoration: none;
 }
-
-
 
 #header_title{ 
     font-size: smaller; 
@@ -38,14 +48,49 @@ h1 a {
 
 }
 
-/* white square */
-.white-1e1d7 {
-  background-color: #b3b3b3;
-  color: #b58863;
+.inblock {
+    display: inline-block;
+    margin-left : 2em;
+    margin-right: 2em;
 }
 
-/* black square */
-.black-3c85d {
-  background-color: #f2f2f2;
-  color: #f0d9b5;
+.spread{
+    padding-right: 1em;
 }
+
+
+/*  chessboard */
+
+.chessboard {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.pgn {
+  display:inline-block; 
+  vertical-align: top; 
+  margin-left:2em; 
+  margin-bottom:1em;
+  margin-top:0em;
+  padding-top:0em;
+}
+
+
+.blacksquare { fill:  #f2f2f2; }
+.whitesquare { fill: #b3b3b3; }
+
+.blacksquare { fill:  #f5f5f5; stroke:black; stroke-width:.1px; }
+.whitesquare { fill: none; stroke:gray; stroke-width:.2px; }
+
+/*
+a {fill : blue }
+a:hover { cursor: pointer }
+*/
+
+.title{ font-size: 4px; }
+.caption{ font-size: 2px;}
+.legend{ font-size: 2px;}
+.labels text {  font-size: 2px; opacity:.5 }
+.circles { fill:none; stroke-width:1px; stroke:blue; opacity:.3; stroke-width:.5px}
+.arrows { fill:blue; stroke:blue; stroke-width:2px; opacity:.5}
+.arrowhead {fill:blue; stroke:blue; opacity:.5, stroke-widith:0; }

@@ -4,17 +4,29 @@
 {% block content %}
     {% for centroid in rows%}
         <div style='float:left'>
-        <span class='board_header'>
-             <a href=/kmode/{{centroid.pclass}}>id={{centroid.pclass}}</a> 
-             n={{centroid.count}} 
-             avg={{centroid.avg}} 
-             sd={{centroid.stddev}}
-             </br>
-             win={{centroid.win}}
-             rating={{centroid.rating}}
-         </span>
-        <br/>
-            {{ centroid.to_svg(250)}}
+
+
+        <div style='float:right'>
+        <h4>top opening systems</h4>
+        <ul>
+            {% for row in centroid.eco%}
+                <ul>{{row}}</ul>
+            {% endfor %}
+        </ul>
+        </div>
+
+        <div style='float:right'>
+        <h4><a href=/kmode/{{centroid.pclass}}>centroid {{centroid.pclass}}</a></h4>
+        <table>
+                <tr><td>n</td><td class='number'> {{centroid.count}}</td></tr>
+                <tr><td>hamming avg</td><td class='number'> {{centroid.avg}}</td></tr>
+                <tr><td>hamming se</td><td class='number'> {{centroid.stddev}}</td></tr>
+                <tr><td>win %</td><td class='number'> {{centroid.win}}</td></tr>
+                <tr><td>avg rating</td><td class='number'> {{centroid.rating}}</td></tr>
+        </table></div>
+
+
+        {{ centroid.to_svg(250)}}
         </div>
     {% endfor %}
 

@@ -3,7 +3,9 @@
 <head>
   {% block head %}
   <meta charset="utf-8" />
+  <!--
   <link rel="stylesheet" href="/s/css/chessboard.css" />
+  -->
   <link rel="stylesheet" href="/s/css/main.css{{randomize()}}" />
   <title>&#9820;{% block title %}{% endblock %} Chess Index&#9820;</title>
   {% endblock %}
@@ -33,9 +35,11 @@
 
         </h1>
     </div>
+    <!--
     <script src="/js/json3.min.js"></script>
     <script src="/js/jquery-1.10.1.min.js"></script>
     <script src="/js/chessboard.js"></script>
+    -->
 
     <div id="content">{% block content %}{% endblock %}</div>
     <div id="footer" style='clear:both;'>

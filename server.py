@@ -3,6 +3,7 @@ import random
 import time
 import sys
 import os
+import urllib
 
 #package
 from sanic import Sanic
@@ -54,9 +55,19 @@ def fmt_ps(pieces, squares):
     for p, s in zip(pieces, squares):
         l.append("{}{}".format(p, chess.SQUARE_NAMES[s]))
     return '{' + ','.join(l) + '}'
+from markupsafe import Markup
+
+def urlencode_filter(s):
+    if type(s) == 'Markup':
+        s = s.unescape()
+    s = s.encode('utf8')
+    s = urllib.quote_plus(s)
+    return Markup(s)
+
 
 env.globals['randomize'] = randomize
 env.globals['fmt_ps'] = fmt_ps
+env.globals['urlencode'] = urlencode_filter
 
 app = Sanic()
 app.static('/s/', './static')
@@ -65,6 +76,11 @@ app.static('/svg/', './static/svg')
 app.static('/js/', './static/js')
 app.static('/favicon.ico', './static/img/favicon.ico')
 app.static('/scipy/', '../scipy/img/')
+
+
+def _no_results():
+    t = env.get_template("no_results.jinja")
+    return response.html(t.render())
 
 @app.middleware('request')
 async def add_start_time(request):
@@ -82,21 +98,22 @@ async def index(request):
     t = env.get_template("index.jinja")
     return response.html(t.render())
 
-@app.route("/kmode")
-async def kmode(request):
+@app.route("/pawns")
+async def pawns(request):
     t = env.get_template("kmode.jinja")
     rows = Query.canonical_pawns()
     return response.html(time_render(t, rows=rows))
 
-@app.route("/kmode/<id>")
+@app.route("/pawns/<id>")
 async def kmode_pos(request, id):
     l = Query.kmode_positions(id)
     if not l:
         t = env.get_template("no_results.jinja")
         return response.html(t.render())
     else:
+        eco = Query.eco_agg(id)
         t = env.get_template("positions.jinja")
-        return response.html(time_render(t, rows=l))
+        return response.html(time_render(t, rows=l, eco=eco))
 
 @app.route("/search")
 async def search(request):
@@ -123,6 +140,45 @@ async def game(request):
     else:
         t = env.get_template("game.jinja")
         return response.html(t.render(game=game))
+
+@app.route("/openings")
+async def openings(request):
+
+    eco = Query.openings()
+    if not eco:
+        return _no_results()
+    else:
+        t = env.get_template("openings.jinja")
+        return response.html(t.render(eco=eco))
+
+@app.route("/openings/<name>")
+async def opening(request, name):
+
+    name = urllib.parse.unquote(name)
+    rows = Query.opening(name)
+
+    d = {}
+    for row in rows:
+        if row.var1:
+            d[row.var1] = None
+    if not rows:
+        return _no_results()
+    else:
+        t = env.get_template("opening_var2.jinja")
+        return response.html(t.render(name=name, rows=rows, names=sorted(d.keys())))
+
+
+@app.route("/opening/var/<id>")
+async def opening_var(request, id):
+
+    opening, games = Query.opening_var(id)
+
+    if not opening:
+        return _no_results()
+    else:
+        t = env.get_template("opening_var.jinja")
+        return response.html(t.render(opening=opening, games=games))
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

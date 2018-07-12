@@ -1,0 +1,68 @@
+
+{% macro opening_board(row, size, h, show_opening, show_var1, show_var2, link) %}
+
+<div class='chessboard'>
+
+<{{h}}
+{% if link%}
+ id={{row.var1 | urlencode}}
+{% endif %}
+>
+{% if show_opening %}
+<a href='/opening/var/{{row.id}}'/>{{row.eco }} {{row.opening}}</a>
+{% endif %}
+
+{% if show_var1%}
+<a href='/opening/var/{{row.id}}'/>{{row.eco }} {{row.var1}}</a>
+{% endif %}
+
+{% if show_var2%}
+<a href='/opening/var/{{row.id}}'/><br/> {{row.subname}}</a>
+{% endif %}
+
+<br/>
+cnt: {{row.system_cnt }} rtg: {{row.rating_mu}} w% {{row.win}}
+
+</{{h}}>
+  {{ row.board.to_svg(size)}}
+  <br/>
+  <div class='pgn' style='width:{{size}}px'>
+    {{row.moves}}
+  </div>
+
+</div>
+{% endmacro %}
+
+
+{% extends "base.jinja" %}
+{% block title %}Opening - {{name}}{% endblock %}
+{% block title2 %}Opening - {{name}}{% endblock %}
+{% block content %}
+
+
+  {% set ns = namespace(last=None) %}
+  {% for row in rows %}
+
+     {% if not row.var1 and not row.var2 %}
+          {{ opening_board(row, 350, 'h3', True, False, False, False) }}
+          <br/>
+        <div class='inblock'>
+        {% for name in names%}
+          <span class='spread' >|<a href='#{{name | urlencode}}'>{{name}}</a>|</span>
+        {% endfor %}
+        </div>
+        <br/>
+
+     {% elif not row.var2 %}
+          {{ opening_board(row, 350, 'h4', False, True, False, True) }}
+
+     {% else %}
+        {{ opening_board(row, 250, 'h5', False, True, True, False) }}
+     {% endif %}
+
+    {% set ns.last=row %}
+
+  {% endfor %}
+
+{% endblock %}
+

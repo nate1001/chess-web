@@ -6,18 +6,21 @@
 {% block content %}
 
 <div style='float:left'>
-<h3>
-<p>
-    <br/>
-        pawn centroid # {{ rows[0].pclass  }}
-    </br/>
-        count {{ rows[0].count }}
-    </br/>
-        avg {{ rows[0].avg}}
-    </br/>
-        stddev {{ rows[0].stddev }}
-</p>
-</h3>
+<h4>pawn centroid # {{ rows[0].pclass  }}</h4>
+<table>
+    <tr><td>count</td><td>{{ rows[0].count }}</td></tr>
+    <tr><td>hamming avg</td><td>{{ rows[0].avg}}</td></tr>
+    <tr><td>hamming se</td><td>{{ rows[0].stddev}}</td></tr>
+    </table>
+</div>
+
+<div style='float:left'>
+<h4>top opening systems</h4>
+<table>
+    {% for row in eco %}
+        <tr><td>{{row.count}}</td><td> {{row.system}}</td></tr>
+    {% endfor %}
+</table>
 </div>
 
 <div style='float:left;'>

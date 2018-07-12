@@ -1,0 +1,67 @@
+
+
+{% macro opening_board(row, size, h, show_opening, show_var1, show_var2, link) %}
+
+<div class='chessboard'>
+
+<{{h}}
+{% if link%}
+ id={{row.var1 | urlencode}}
+{% endif %}
+>
+{% if show_opening %}
+{{row.eco }} {{row.opening}}
+{% endif %}
+
+{% if show_var1%}
+{{row.eco }} {{row.var1}}
+{% endif %}
+
+{% if show_var2%}
+<br/> {{row.subname}}
+{% endif %}
+
+<br/>
+cnt: {{row.system_cnt }} rtg: {{row.rating_mu}} w% {{row.win}}
+
+</{{h}}>
+  {{ row.board.to_svg(size)}}
+  <br/>
+  <div class='pgn' style='width:{{size}}px'>
+    {{row.moves}}
+  </div>
+
+</div>
+{% endmacro %}
+
+{% macro game_board(game, size) %}
+
+<div class='chessboard'>
+
+ <h4>
+   {{ game.white }}
+   <br/>{{ game.black }}
+   <br/><a href="http://lichess.org/site/{{game.site}}"> {{ game.h2}} </a>
+ </h4>
+  {{ game.board.to_svg(size)}}
+
+
+</div>
+{% endmacro %}
+
+
+{% extends "base.jinja" %}
+{% block title %}Opening - {{opening.name}}{% endblock %}
+{% block title2 %}Opening - {{opening.name}}{% endblock %}
+{% block content %}
+
+  {{ opening_board(opening, 350, 'h3', True, False, False, False) }}
+  <br/>
+
+  {% for row in games %}
+        {{ game_board(row, 250) }}
+
+  {% endfor %}
+
+{% endblock %}
+
