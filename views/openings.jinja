@@ -9,7 +9,7 @@
 {% for row in eco %}
 
   <div class='chessboard'>
-  <h4><a href="/openings/{{row.opening}}">{{ row.opening}}</a></h4>
+  <h4><a href="/openings/{{row.name}}">{{ row.name}}</a></h4>
   <br/>
     {{ row.board.to_svg(250)}}
   </div>

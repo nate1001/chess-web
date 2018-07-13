@@ -1,88 +1,71 @@
 import time
 
 #package
-import psycopg2
-import psycopg2.extras
-import psycopg2.extensions
-
 import chess
 
-#local
+from sqlalchemy import create_engine
+from sqlalchemy import MetaData
+from sqlalchemy import Table, Column, Text
+from sqlalchemy.orm import sessionmaker, mapper
+from sqlalchemy.ext.declarative import declarative_base
 
+#local
 import sys
 sys.path.append('../db')
 from db import Connection
-from svgboard import SvgBoard
 
-Connection.connect('www-data')
+db_uri = 'postgres:///chess'
+engine = create_engine(db_uri)
+metadata = MetaData()
+metadata.reflect(bind=engine)
+Connection.register_alchemy(engine)
+Base = declarative_base(metadata=metadata)
+
+Session = sessionmaker(bind=engine)
+Session.configure(bind=engine)
+session = Session()
+
+Session = sessionmaker(bind=engine)
+Session.configure(bind=engine)
+
 
 def timeit(f):
 
     def timed(*args, **kw):
-
         ts = time.time()
         result = f(*args, **kw)
         te = time.time()
-
         sys.stderr.write('func:%r args:[%r, %r] took: %2.4f sec\n' % \
           (f.__name__, args, kw, te-ts))
         return result
     return timed
 
+
+KmodeAgg = Table('m_kmode_agg', metadata, autoload_with=engine)
+Kmode = Table('m_kmode', metadata, autoload_with=engine)
+OpeningVar3Agg = Table('v_opening_var3_agg', metadata, autoload_with=engine)
+PclassEcoName = Table('v_pclass_eco_name', metadata, autoload_with=engine)
+PawnBoard = Table('v_pawn_board', metadata, autoload_with=engine)
+
+class EcoName(Base):
+    __table__ = Table('v_eco_name', 
+            metadata,
+            Column('name', Text, primary_key=True),
+            autoload=True,
+            autoload_with=engine,
+            )
+    
+    @property
+    def board(self):
+        return self.fen
+    
+
 class Query(Connection):
-
-    @classmethod
-    def _execute_all(cls, query, klass, *args):
-        n, rows = cls.execute(query, *args)
-        l = []
-        for row in rows:
-            l.append(klass(row))
-        return l
-
-    @classmethod
-    def random_search(cls):
-        c = Connection.cursor()
-        n, rows = cls.execute("select * from random_search()")
-        for row in rows:
-            yield PositionResult(row)
-
-    @classmethod
-    def random_position(cls):
-        c = Connection.cursor()
-        n, rows = cls.execute("select * from v_position order by random() limit 1")
-        if n == 0:
-            return None
-        for row in rows:
-            return Position(row)
-
-    @classmethod
-    def random_game(cls):
-        c = Connection.cursor()
-        n, rows = cls.execute("select * from v_game order by random() limit 1")
-        if n:
-            return Game(rows.fetchone())
-
-    @classmethod
-    def select_fen(cls, fen):
-
-        c = Connection.cursor()
-        n, rows = cls.execute("select * from v_position where fen=%s limit 1", fen)
-        if n == 0:
-            return None
-        return Position(rows.fetchone())
-
-    @classmethod
-    def canonical_pawns(cls):
-        n, rows = cls.execute('SELECT * from m_kmode_agg order by count desc')
-        l = []
-        for row in rows:
-            l.append(Centroid(row))
-        return l
 
     @classmethod
     @timeit
     def kmode_positions(self, id):
-        n, rows = Connection.execute('select * from v_kmode where pclass=%s order by random() limit 20', id)
+        n, rows = Connection.execute('select * from m_kmode where pclass=%s order by random() limit 20', id)
         l = []
         for row in rows:
             l.append(CentroidPos(row))
@@ -96,7 +79,7 @@ class Query(Connection):
         elif opening:
             table = 'v_eco_opening'
         else:
-            table = 'v_eco_system'
+            table = 'v_pclass_eco_name'
 
         n, rows = Connection.execute('select * from {} where pclass=%s'.format(table), pclass)
         l = []
@@ -126,99 +109,6 @@ class Query(Connection):
         games = cls._execute_all(q, Game, number)
         return opening[0], games
 
-class System:
-    def __init__(self, name, openings):
-        keys = set()
-        self.name = name
-        self.openings = {}
-
-        for o in openings:
-            keys.add(o.key)
-
-        for k in keys:
-            self.openings[k] = []
-            last = None
-            for o in openings:
-                if last and last.key_var:
-                    last.same_key_var = last.var == o.var and o.key_var
-                if o.key == k:
-                    self.openings[k].append(o)
-                last = o
-        
-        self.keys = sorted(self.openings.keys())
-
-class Opening:
-    def __init__(self, row):
-        #self.ecoid = row['ecoid']
-        self.eco = row['eco'][:3]
-        self.id = row['openingid']
-        self.opening = row['name']
-        self.var1 = row['var1'] or ''
-        self.var2 = row['var2'] or ''
-        self.var3 = row['var3'] or ''
-        self.board = row['fen']
-        self.moves = row['moves']
-        self.halfmoves = row['halfmoves']
-        self.system_cnt = row['system_cnt']
-        self.rating_mu = row['rating_mu']
-        self.win = row['win%']
-
-        self.key = '{}, {}'.format(self.opening, self.var1)
-        self.key_opening = not self.var1
-        self.key_var = not self.var2
-        self.name = ', '.join([n for n in [self.var1, self.var2, self.var3] if n])
-        self.subname = ', '.join([n for n in [self.var2, self.var3] if n])
-        self.same_key_var = None
-        self.same_var = None
-
-    def __str__(self):
-        return "<Opening {} {}: {}:{},{},{}>".format(
-                self.eco, self.system, self.opening,
-                self.var, self.subvar, self.subsubvar)
-
-
-class EcoAgg:
-    def __init__(self, row):
-        self.count = row['count']
-        self.klass = row['pclass']
-        self.system = row['meta']
-        if 'opening' in row.keys():
-            self.opening = row['opening']
-        if 'var' in row.keys():
-            self.var = row['var']
-
-class Centroid:
-
-    def __init__(self, row):
-        self.count = row['count']
-        self.pclass = row['pclass']
-        self.avg = round(row['avg'], 1)
-        self.stddev = round(row['stddev'], 1)
-        self.board = row['pawn_centr']
-
-        if 'win' in row.keys():
-            self.eco = row['systems']
-            self.win = round(row['win'], 2)
-            self.draw = row['draw']
-            self.lose = row['lose']
-            self.rating = int(row['rating'])
-
-    @timeit
-    def to_svg(self, size, href=None):
-        return self.board.to_svg(size, href=href).tostring()
-
-
-class CentroidPos(Centroid):
-    def __init__(self, row):
-        super().__init__(row)
-        self.hamming = row['hamming']
-        self.jaccard = round(row['jaccard'], 2)
-        self.position = row['pawns']
-        self.site = row['site']
-
-    def to_svg(self, size):
-        return self.position.to_svg(size, comp=self.board).tostring()
-
 
 class Position(Connection):
 
@@ -231,7 +121,7 @@ class Position(Connection):
 
     def __init__(self, row):
         self.id = None
-        self.site = row['site']
+        self.site = row['gameid']
         self.board = row['fen']
 
         self.score = row['score']
@@ -352,47 +242,8 @@ class Position(Connection):
 
         return d
     
-class PositionMG(Position):
-    def __init__(self, row):
-        super().__init__(row)
-        self.similar = round(row['similar'], 3)
-
-    def __str__(self):
-        return "<PositionResult '{}'>".format(self.board.fen())
-
-class PositionResult(Position):
-    def __init__(self, row):
-        super().__init__(row)
-        self.distance = round(row['distance'], 3)
-        self.querykey = row['querykey']
-        self.queryboard = row['queryboard'] 
-
-    def __str__(self):
-        return "<PositionResult '{}'>".format(self.board.fen())
 
 class Game:
-    '''
- gameid        | bigint       |           |          | 
- event         | text         |           |          | 
- site          | text         |           |          | 
- date_         | date         |           |          | 
- round         | integer      |           |          | 
- wplayer       | text         |           |          | 
- bplayer       | text         |           |          | 
- result        | gameresult   |           |          | 
- eco           | character(3) |           |          | 
- eco_name      | text         |           |          | 
- variation     | text         |           |          | 
- wdiff         | integer      |           |          | 
- bdiff         | integer      |           |          | 
- wrating       | integer      |           |          | 
- brating       | integer      |           |          | 
- time_control  | text         |           |          | 
- moves         | text         |           |          | 
- #mg_halfmove   | integer      |           |          | 
- eg_halfmove   | integer      |           |          | 
- last_halfmove | integer      |           |          | 
-    '''
 
     def __init__(self, row):
         self.site = row['site']
@@ -456,11 +307,6 @@ class Game:
 
     def subtitle(self):
         return '{} {} - {}: {}'.format(self.event, self.time_control, self.eco, self.eco_name)
-
-#l = []
-#for row in Query.canonical_pawns():
-#    l.append(row)
-#print(l)
 
 #game = Query.random_game()
 #print(game)

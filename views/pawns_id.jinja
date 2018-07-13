@@ -1,16 +1,16 @@
 
 
 {% extends "base.jinja" %}
-{% block title %}Kmode class={{rows[0].id}}{% endblock %}
+{% block title %}Kmode class={{pawn.id}}{% endblock %}
 {% block title2 %}{% endblock %}
 {% block content %}
 
 <div style='float:left'>
-<h4>pawn centroid # {{ rows[0].pclass  }}</h4>
+<h4>pawn centroid # {{ pawn.pclass  }}</h4>
 <table>
-    <tr><td>count</td><td>{{ rows[0].count }}</td></tr>
-    <tr><td>hamming avg</td><td>{{ rows[0].avg}}</td></tr>
-    <tr><td>hamming se</td><td>{{ rows[0].stddev}}</td></tr>
+    <tr><td>count</td><td>{{ pawn.count }}</td></tr>
+    <tr><td>hamming avg</td><td>{{ pawn.avg}}</td></tr>
+    <tr><td>hamming se</td><td>{{ pawn.stddev}}</td></tr>
     </table>
 </div>
 
@@ -24,10 +24,11 @@
 </div>
 
 <div style='float:left;'>
-{{ rows[0].board.to_svg(400).tostring() }}
+{{ pawn.pawn_centroid.to_svg(400) }}
 </div>
 
 <div style='clear:both;'/>
+
 {% for pos in rows %}
 
   <div style='float:left;'>
@@ -35,7 +36,7 @@
       {{pos.site}} {{pos.hamming}} {{pos.jaccard}}
     </span>
     <br/>
-        {{ pos.to_svg(250)}}
+        {{ pos.pawns.to_svg(250, comp=pos.pawn_centroid)}}
     </div>
 
 {% endfor %}

@@ -5,18 +5,17 @@
     {% for centroid in rows%}
         <div style='float:left'>
 
-
         <div style='float:right'>
         <h4>top opening systems</h4>
         <ul>
-            {% for row in centroid.eco%}
-                <ul>{{row}}</ul>
+            {% for row in centroid.eco_name %}
+                <ul><a href='/openings/{{row | urlencode}}'>{{row}}<a></ul>
             {% endfor %}
         </ul>
         </div>
 
         <div style='float:right'>
-        <h4><a href=/kmode/{{centroid.pclass}}>centroid {{centroid.pclass}}</a></h4>
+        <h4><a href=/pawns/{{centroid.pclass}}>centroid {{centroid.pclass}}</a></h4>
         <table>
                 <tr><td>n</td><td class='number'> {{centroid.count}}</td></tr>
                 <tr><td>hamming avg</td><td class='number'> {{centroid.avg}}</td></tr>
@@ -25,8 +24,7 @@
                 <tr><td>avg rating</td><td class='number'> {{centroid.rating}}</td></tr>
         </table></div>
 
-
-        {{ centroid.to_svg(250)}}
+        {{ centroid.pawn_centroid.to_svg(250)}}
         </div>
     {% endfor %}
 

@@ -24,7 +24,7 @@
 cnt: {{row.system_cnt }} rtg: {{row.rating_mu}} w% {{row.win}}
 
 </{{h}}>
-  {{ row.board.to_svg(size)}}
+  {{ row.fen.to_svg(size)}}
   <br/>
   <div class='pgn' style='width:{{size}}px'>
     {{row.moves}}

@@ -16,10 +16,19 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import chess
 import chess.svg
 
+from sqlalchemy.sql import func
+
 #local
 from model import Query
 from model import Game
 
+from model import KmodeAgg
+from model import Kmode
+from model import Session
+from model import EcoName
+from model import OpeningVar3Agg
+from model import PclassEcoName
+from model import PawnBoard
 
 ROOT = '/home/lukehand/src/chess/web/'
 
@@ -98,35 +107,59 @@ async def index(request):
     t = env.get_template("index.jinja")
     return response.html(t.render())
 
+@app.route("/openings")
+async def openings(request):
+
+    session = Session()
+    openings = session.query(EcoName)
+    t = env.get_template("openings.jinja")
+    return response.html(t.render(eco=openings))
+
+@app.route("/openings/<name>")
+async def openings_name(request, name):
+
+    name = urllib.parse.unquote(name)
+    session = Session()
+    rows = session.query(OpeningVar3Agg).filter_by(name=name)
+    if not rows.count():
+        return _no_results()
+    names = sorted(set([row.var1 for row in rows if row.var1]))
+
+    t = env.get_template("openings_name.jinja")
+    return response.html(t.render(name=name, rows=rows, names=names))
+
+@app.route("/opening/var/<id>")
+async def opening_var(request, id):
+
+    opening, games = Query.opening_var(id)
+
+    if not opening:
+        return _no_results()
+    else:
+        t = env.get_template("opening_var.jinja")
+        return response.html(t.render(opening=opening, games=games))
+
 @app.route("/pawns")
 async def pawns(request):
-    t = env.get_template("kmode.jinja")
-    rows = Query.canonical_pawns()
+    rows = Session().query(KmodeAgg)
+    t = env.get_template("pawns.jinja")
     return response.html(time_render(t, rows=rows))
 
 @app.route("/pawns/<id>")
-async def kmode_pos(request, id):
-    l = Query.kmode_positions(id)
-    if not l:
-        t = env.get_template("no_results.jinja")
-        return response.html(t.render())
-    else:
-        eco = Query.eco_agg(id)
-        t = env.get_template("positions.jinja")
-        return response.html(time_render(t, rows=l, eco=eco))
+async def pawns_id(request, id):
 
-@app.route("/search")
-async def search(request):
-    l = []
-    for i, row in enumerate(Query.random_search()):
-        l.append(row)
-    if not l:
-        t = env.get_template("no_results.jinja")
-        return response.html(t.render())
-    else:
-        query = Query.select_fen(l[0].queryboard.fen())
-        t = env.get_template("index.jinja")
-        return response.html(t.render(query=query, results=l))
+    session = Session()
+    pawns = session.query(KmodeAgg).filter_by(pclass=id)
+    if not pawns.count():
+        return _no_results()
+
+    eco = session.query(PclassEcoName).filter_by(pclass=id)
+
+    rows = session.query(Kmode).filter_by(pclass=id).\
+        order_by(func.random()).limit(20)
+    t = env.get_template("pawns_id.jinja")
+
+    return response.html(t.render(rows=rows, pawn=pawns[0], eco=eco))
 
 @app.route("/game")
 async def game(request):
@@ -141,43 +174,7 @@ async def game(request):
         t = env.get_template("game.jinja")
         return response.html(t.render(game=game))
 
-@app.route("/openings")
-async def openings(request):
 
-    eco = Query.openings()
-    if not eco:
-        return _no_results()
-    else:
-        t = env.get_template("openings.jinja")
-        return response.html(t.render(eco=eco))
-
-@app.route("/openings/<name>")
-async def opening(request, name):
-
-    name = urllib.parse.unquote(name)
-    rows = Query.opening(name)
-
-    d = {}
-    for row in rows:
-        if row.var1:
-            d[row.var1] = None
-    if not rows:
-        return _no_results()
-    else:
-        t = env.get_template("opening_var2.jinja")
-        return response.html(t.render(name=name, rows=rows, names=sorted(d.keys())))
-
-
-@app.route("/opening/var/<id>")
-async def opening_var(request, id):
-
-    opening, games = Query.opening_var(id)
-
-    if not opening:
-        return _no_results()
-    else:
-        t = env.get_template("opening_var.jinja")
-        return response.html(t.render(opening=opening, games=games))
 
 
 if __name__ == "__main__":
