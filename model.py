@@ -45,7 +45,9 @@ KmodeAgg = Table('m_kmode_agg', metadata, autoload_with=engine)
 Kmode = Table('m_kmode', metadata, autoload_with=engine)
 OpeningVar3Agg = Table('v_opening_var3_agg', metadata, autoload_with=engine)
 PclassEcoName = Table('v_pclass_eco_name', metadata, autoload_with=engine)
+PclassEcoVar1 = Table('v_pclass_eco_var1', metadata, autoload_with=engine)
 PawnBoard = Table('v_pawn_board', metadata, autoload_with=engine)
+GameState = Table('v_gamestate', metadata, autoload_with=engine)
 
 class EcoName(Base):
     __table__ = Table('v_eco_name', 
@@ -62,14 +64,6 @@ class EcoName(Base):
 
 class Query(Connection):
 
-    @classmethod
-    @timeit
-    def kmode_positions(self, id):
-        n, rows = Connection.execute('select * from m_kmode where pclass=%s order by random() limit 20', id)
-        l = []
-        for row in rows:
-            l.append(CentroidPos(row))
-        return l
 
     @classmethod
     def eco_agg(self, pclass, opening=False, var=False):

@@ -20,7 +20,7 @@ h1,p {
     margin: .5em;
 }
 
-td, table, h3, h4, h5, ul  {
+td, th, table, h3, h4, h5, ul  {
     padding: .2em;
     margin-left: 1%;
 }
@@ -58,6 +58,19 @@ h1 a {
     padding-right: 1em;
 }
 
+.smaller{
+    font-size: smaller;
+}
+
+.hoverhide {
+    opacity: 0;
+}
+
+a.hovershow svg { position:absolute; display:none; z-index:99; }
+a.hovershow:hover svg{  right:1em; top:1em; display:block; }
+
+a.gamelink {margin-left:1em;}
+
 
 /*  chessboard */
 
@@ -77,10 +90,10 @@ h1 a {
 
 
 .blacksquare { fill:  #f2f2f2; }
-.whitesquare { fill: #b3b3b3; }
+.whitesquare { fill: #b3b3b3; opacity:1; }
 
 .blacksquare { fill:  #f5f5f5; stroke:black; stroke-width:.1px; }
-.whitesquare { fill: none; stroke:gray; stroke-width:.2px; }
+.whitesquare { fill: white; stroke:gray; stroke-width:.2px; }
 
 circle {
     opacity: .33;

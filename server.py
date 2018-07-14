@@ -28,7 +28,8 @@ from model import Session
 from model import EcoName
 from model import OpeningVar3Agg
 from model import PclassEcoName
-from model import PawnBoard
+from model import PclassEcoVar1
+from model import GameState
 
 ROOT = '/home/lukehand/src/chess/web/'
 
@@ -131,13 +132,16 @@ async def openings_name(request, name):
 @app.route("/opening/var/<id>")
 async def opening_var(request, id):
 
-    opening, games = Query.opening_var(id)
-
+    session = Session()
+    opening = session.query(OpeningVar3Agg).filter_by(openingid=id).first()
     if not opening:
         return _no_results()
-    else:
-        t = env.get_template("opening_var.jinja")
-        return response.html(t.render(opening=opening, games=games))
+
+    games = session.query(GameState).filter_by(openingid=id).\
+        order_by(func.random()).limit(50)
+
+    t = env.get_template("opening_var.jinja")
+    return response.html(t.render(opening=opening, games=games))
 
 @app.route("/pawns")
 async def pawns(request):
@@ -154,12 +158,13 @@ async def pawns_id(request, id):
         return _no_results()
 
     eco = session.query(PclassEcoName).filter_by(pclass=id)
+    var1 = session.query(PclassEcoVar1).filter_by(pclass=id)
 
     rows = session.query(Kmode).filter_by(pclass=id).\
         order_by(func.random()).limit(20)
     t = env.get_template("pawns_id.jinja")
 
-    return response.html(t.render(rows=rows, pawn=pawns[0], eco=eco))
+    return response.html(t.render(rows=rows, pawn=pawns[0], eco=eco, var1=var1))
 
 @app.route("/game")
 async def game(request):

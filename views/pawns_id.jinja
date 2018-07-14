@@ -1,12 +1,16 @@
 
 
 {% extends "base.jinja" %}
-{% block title %}Kmode class={{pawn.id}}{% endblock %}
-{% block title2 %}{% endblock %}
+{% block title %}Kmode class={{pawn.pclass}}{% endblock %}
+{% block title2 %}Pawn Centroid #{{pawn.pclass}} {% endblock %}
 {% block content %}
 
-<div style='float:left'>
+<div style='float:left; padding-left:3em;'>
 <h4>pawn centroid # {{ pawn.pclass  }}</h4>
+{{ pawn.pawn_centroid.to_svg(400) }}
+</div>
+
+<div style='float:left'>
 <table>
     <tr><td>count</td><td>{{ pawn.count }}</td></tr>
     <tr><td>hamming avg</td><td>{{ pawn.avg}}</td></tr>
@@ -14,24 +18,51 @@
     </table>
 </div>
 
+
 <div style='float:left'>
 <h4>top opening systems</h4>
 <table>
+    <tr><td>n</td><td>%</td><td>system</td></tr>
     {% for row in eco %}
-        <tr><td>{{row.count}}</td><td> {{row.system}}</td></tr>
+    <tr>
+        <td>{{row.count}}</td><td>{{row.group }}</td>
+        <td>
+            <a class='hovershow' href="/opening/var/{{row.openingid}}">
+              {{row.eco_name}}
+              {{ row.fen.to_svg(400) }}
+            </a> 
+        </td>
+    </tr>
     {% endfor %}
 </table>
 </div>
 
-<div style='float:left;'>
-{{ pawn.pawn_centroid.to_svg(400) }}
+<div style='float:left'>
+<h4>top opening variations</h4>
+<table>
+    <tr><td>n</td><td>%</td><td>variation</td></tr>
+    {% for row in var1 %}
+    <tr>
+        <td>{{row.count}}</td><td>{{row.group }}</td>
+        <td>
+            <a class='hovershow' href="/opening/var/{{row.openingid}}">
+              {{row.eco_name}}
+              {{ row.fen.to_svg(400) }}
+            </a> 
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 </div>
+
+
 
 <div style='clear:both;'/>
 
 {% for pos in rows %}
 
   <div style='float:left;'>
+   <a class='gamelink' href="/game/{{pos.gameid}}">{{pos.gameid}}</a><br/>
     <span class='board_header'>
       {{pos.site}} {{pos.hamming}} {{pos.jaccard}}
     </span>

@@ -1,42 +1,61 @@
+{% macro opening_board(row, size, h, show_opening, show_var1, show_var2, link) %}
 
+<div class='chessboard'>
 
-{% macro lichess_game(game) -%}
-<div class='game_header'>
-    <iframe style='float:left' src="https://lichess.org/embed/{{game.site}}?theme=grey&bg=auto"
-    width=600 height=400 frameborder=0></iframe>
+<{{h}}
+{% if link%}
+ id={{row.var1 | urlencode}}
+{% endif %}
+>
+{% if show_opening %}
+{{row.eco }} {{row.opening}}
+{% endif %}
+
+{% if show_var1%}
+{{row.eco }} {{row.var1}}
+{% endif %}
+
+{% if show_var2%}
+<br/> {{row.subname}}
+{% endif %}
+
+<br/>
+cnt: {{row.system_cnt }} rtg: {{row.rating_mu}} w% {{row.win}}
+
+</{{h}}>
+  {{ row.fen.to_svg(size)}}
+  <br/>
+  <div class='pgn' style='width:{{size}}px'>
+    {{row.moves}}
+  </div>
 </div>
 
-{%- endmacro %}
+{% endmacro %}
 
-{% macro board(fen, px=400, id='', float=False) -%}
 
-    {% if float %}
-        <div id="board{{ id }}" style="width: {{ px }}px; float: left; margin-right: 10px; "></div>
-    {% else %}
-        <div id="board{{ id }}" style="width: {{ px }}px;"></div>
-    {% endif %}
+{% macro game_board(game, size) %}
 
-    <script>
-        var cfg = { // config is global
-          showNotation: false,
-        };
-        var init = function() {var board = ChessBoard('board{{ id }}', cfg); board.position('{{ fen }}');};
-        $(document).ready(init);
-    </script>
+<div class='chessboard'>
+ <h4>
+   {{ game.white }}
+   <br/>{{ game.black }}
+   <br/><a href="http://lichess.org/site/{{game.site}}"> {{ game.h2}} </a>
+ </h4>
+  {{ game.fen.to_svg(size)}}
+</div>
 
-{%- endmacro %}
+{% endmacro %}
 
-{% macro multi_board(pos, id, px=250) -%}
 
-    <div id="board{{ id }}" style="width: {{ px }}px; float: left; margin-right: 20px;">
-    hi
-    </div>
-    <script>
-        var cfg = { // config is global
-          showNotation: false,
-        };
-        var init = function() {var board = ChessBoard('board{{ id }}', cfg); board.position('{{ pos.fen }}');};
-        $(document).ready(init);
-    </script>
+{% macro position_board(board, size) %}
 
-{%- endmacro %}
+<div class='chessboard'>
+ <h4>
+   {{ game.white }}
+   <br/>{{ game.black }}
+   <br/><a href="http://lichess.org/site/{{game.site}}"> {{ game.h2}} </a>
+ </h4>
+  {{ game.board.to_svg(size)}}
+</div>
+
+{% endmacro %}
