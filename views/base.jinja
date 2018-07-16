@@ -46,21 +46,16 @@
 <body>
     <div id="title_cont">
         <h1 >
-            <a href='http://chessindex.tk:8080/'>&#9820;&nbsp;Chess Index</a>
+            <a class='nu' href='http://chessindex.tk:8080/'>&#9820ChessIndex</a>
             <div id='title'> &nbsp; &nbsp;{% block title2 %}{% endblock %}</div>
 
         </h1>
     </div>
-    <!--
-    <script src="/js/json3.min.js"></script>
-    <script src="/js/jquery-1.10.1.min.js"></script>
-    <script src="/js/chessboard.js"></script>
-    -->
 
     <div id="content" >{% block content %}{% endblock %}</div>
-    <div id="footer" style='clear:both;'>
+    <div id="footer">
         {% block footer %}
-        <p>&copy; Copyright 2018 by <a href="http://chessindex.tk/:8080/">Nate Carson</a></p>
+        <p>&copy; Copyright 2018 by Nate Carson</p>
         {% endblock %}
     </div>
 </body>

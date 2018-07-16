@@ -7,6 +7,18 @@
         color:#1e1e2f;
 }
 
+ul {
+    list-style-type: none;
+}
+
+li {
+    padding-bottom: .5em;
+}
+
+html, body {
+    height: 100%;
+}
+
 svg {
     margin:0;
     padding:0;
@@ -26,21 +38,38 @@ a {
     color: #52527a;
 }
 
+a.nu { text-decoration: none; }
+
 div {
-    display: inline-block;
 }
 
 /****************************************
  * ids
  ****************************************/
 
+#content {
+  min-height: 100%;
+  margin-bottom: -170px; 
+}
+
+#content:after {
+  content: "";
+  display: block;
+}
+#footer, #content:after {
+  height: 170px; 
+}
+#footer {
+  background: #ddd;
+  padding-left: 1em;
+}
+
 #button_holder{
     margin-left: 3.75em;
 }
 #title_cont {
     padding: .5em;
-    margin-bottom: 2em;
-    text-decoration: none;
+    margin-bottom: 3em;
 }
 
 #title{
@@ -48,12 +77,16 @@ div {
     margin-left: 3em;
 }
 
-#content {
-    padding-bottom: 1em;
-}
-
 #header_title{ 
     font-size: smaller; 
+}
+
+#game_cont {
+    display:inline-block; 
+    border: 1px solid black; 
+    padding:.5em; 
+    margin:1em;
+    margin-left: 2em;
 }
 
 
@@ -84,6 +117,7 @@ td.number {
     display: inline-block;
     margin-left : 2em;
     margin-right: 2em;
+    vertical-align: top;
 }
 
 .spread{
@@ -102,7 +136,7 @@ span.board_title {
 a.hovershow svg { position:absolute; display:none; z-index:99; }
 a.hovershow:hover svg{  right:1em; top:1em; display:block; }
 
-a.gamelink {margin-left:1em;}
+a.game_link {margin-left:2em;}
 
 /****************************************
  * chessboard
@@ -112,6 +146,7 @@ a.gamelink {margin-left:1em;}
 .chessboard {
     display: inline-block;
     vertical-align: top;
+    margin-right: 1em;
 }
 
 button.chessboard {

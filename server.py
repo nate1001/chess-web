@@ -58,6 +58,14 @@ def fmt_ps(pieces, squares):
     return '{' + ','.join(l) + '}'
 from markupsafe import Markup
 
+def game_link(row):
+    return '<a class="game_link" href="/game/{}">{}</a>'.format(
+            row.gameid, row.gameid)
+
+def lichess_link(row, text):
+    return '<a href="http://lichess.org/{}">{}</a>'.format(
+            row.gameid, text)
+
 def urlencode_filter(s):
     if type(s) == 'Markup':
         s = s.unescape()
@@ -66,6 +74,8 @@ def urlencode_filter(s):
     return Markup(s)
 
 
+env.globals['lichess_link'] = lichess_link
+env.globals['game_link'] = game_link
 env.globals['randomize'] = randomize
 env.globals['fmt_ps'] = fmt_ps
 env.globals['urlencode'] = urlencode_filter

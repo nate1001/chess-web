@@ -12,7 +12,7 @@
   {% for game in games %}
 
    <div class='chessboard'>
-   <a href="http://lichess.org/site/{{game.gameid}}"> {{ game.gameid}}</a>
+   {{ game_link(game) }}
    <br/>
    {{ game.mg.to_svg(250)}}
    </div>
