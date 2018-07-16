@@ -1,0 +1,54 @@
+
+{% extends "base.jinja" %}
+{% import "lib.jinja" as lib %}
+{% block title  %}{{game.title}}{% endblock %}
+{% block title2 %}{{game.title}}{% endblock %}
+{% block content %}
+
+<div style='display:inline-block; border: 1px solid black; padding:.5em;
+margin:1em;' >
+<div class='game_header'>
+<ul>
+<li>{{game.event}}</li>
+<li>{{game.date_.strftime('%Y-%m-%d')}}</li>
+<li>{{game.time_control}}</li>
+<li>w: {{game.white_name}}</li>
+<li>b: {{game.black_name}}</li>
+<li>{{game.termination}}</li>
+<li>{{game.result}}</li>
+</ul>
+</div>
+{{lib.js_board(fens, 300 ) }}
+</div>
+
+<div style='margin-left: 3em; vertical-align:top;'>
+<div class='chessboard'><span class='board_title'>
+    <a href='/opening/var/{{opening.openingid}}'>{{opening.eco_name}}</a></span></br>
+    {{ opening.fen.to_svg(200) }} </div>
+
+<div class='chessboard'><span class='board_title'>
+    <a href='/pawns/{{pawn.pclass}}'>pawn group: #{{pawn.pclass}}</a></span></br>{{
+    pawn.pawn_centroid.to_svg(200) }} </div>
+<br/>
+</div>
+
+<br/>
+<br/>
+<br/>
+
+<div style='valign:top'>
+
+<div class='chessboard'><span class='board_title'>pawn formation</span></br>{{ pawn.pawns.to_svg(300) }} </div>
+<div class='chessboard'><span class='board_title'>middle game</span></br>{{ gamestate.mg.to_svg(300) }} </div>
+{%if gamestate.eg %}
+<div class='chessboard'><span class='board_title'>end game</span></br>{{ gamestate.eg.to_svg(300) }} </div>
+{% endif %}
+<div class='chessboard'><span class='board_title'>last position</span></br>{{ gamestate.last.to_svg(300) }} </div>
+<br/>
+
+</div>
+
+
+
+{% endblock %}
+

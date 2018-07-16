@@ -5,19 +5,11 @@
         font-family: "Consolas", mono-space; 
         line-height: 1.5;
         color:#1e1e2f;
-        /*stroke-width: 2.5px;*/
-        /*background: #efeff5;*/
 }
 
-td.number {
-    text-align: right;
-    padding-left: 1em;
-}
-
-
-h1,p {
-    padding: 1em;
-    margin: .5em;
+svg {
+    margin:0;
+    padding:0;
 }
 
 td, th, table, h3, h4, h5, ul  {
@@ -30,23 +22,63 @@ h3, h4, h5 {
     padding-bottom: .5em;
 }
 
-
 a {
     color: #52527a;
 }
-h1 a {
+
+div {
+    display: inline-block;
+}
+
+/****************************************
+ * ids
+ ****************************************/
+
+#button_holder{
+    margin-left: 3.75em;
+}
+#title_cont {
+    padding: .5em;
+    margin-bottom: 2em;
     text-decoration: none;
+}
+
+#title{
+    display: inline-block;
+    margin-left: 3em;
+}
+
+#content {
+    padding-bottom: 1em;
 }
 
 #header_title{ 
     font-size: smaller; 
 }
 
+
+/****************************************
+ * classes
+ ****************************************/
+
 .board_header {
   color: #0099e6;
   padding-left: 1em;
+}
+
+td.number {
+    text-align: right;
+    padding-left: 1em;
+}
+
+.game_header{
+  display: inline-block;
+  padding-top: 1em;
+  padding-left: 2em;
+  width: 13em;
 
 }
+
 
 .inblock {
     display: inline-block;
@@ -62,8 +94,9 @@ h1 a {
     font-size: smaller;
 }
 
-.hoverhide {
-    opacity: 0;
+
+span.board_title {
+    padding-left: 2em;
 }
 
 a.hovershow svg { position:absolute; display:none; z-index:99; }
@@ -71,12 +104,19 @@ a.hovershow:hover svg{  right:1em; top:1em; display:block; }
 
 a.gamelink {margin-left:1em;}
 
+/****************************************
+ * chessboard
+ ****************************************/
 
-/*  chessboard */
 
 .chessboard {
     display: inline-block;
     vertical-align: top;
+}
+
+button.chessboard {
+    padding-right: 1em;
+    padding-left: 1em;
 }
 
 .pgn {
@@ -89,9 +129,6 @@ a.gamelink {margin-left:1em;}
 }
 
 
-.blacksquare { fill:  #f2f2f2; }
-.whitesquare { fill: #b3b3b3; opacity:1; }
-
 .blacksquare { fill:  #f5f5f5; stroke:black; stroke-width:.1px; }
 .whitesquare { fill: white; stroke:gray; stroke-width:.2px; }
 
@@ -99,12 +136,7 @@ circle {
     opacity: .33;
 }
 
-/*
-a {fill : blue }
-a:hover { cursor: pointer }
-*/
-
-.title{ font-size: 4px; }
+.title1{ font-size: 4px; }
 .caption{ font-size: 2px;}
 .legend{ font-size: 2px;}
 .labels text {  font-size: 2px; opacity:.5 }

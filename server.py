@@ -16,20 +16,11 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import chess
 import chess.svg
 
-from sqlalchemy.sql import func
+
+from peewee import fn
 
 #local
-from model import Query
-from model import Game
-
-from model import KmodeAgg
-from model import Kmode
-from model import Session
-from model import EcoName
-from model import OpeningVar3Agg
-from model import PclassEcoName
-from model import PclassEcoVar1
-from model import GameState
+from model import *
 
 ROOT = '/home/lukehand/src/chess/web/'
 
@@ -84,6 +75,7 @@ app.static('/s/', './static')
 app.static('/img/', './static/img')
 app.static('/svg/', './static/svg')
 app.static('/js/', './static/js')
+app.static('/brython/', './static/brython')
 app.static('/favicon.ico', './static/img/favicon.ico')
 app.static('/scipy/', '../scipy/img/')
 
@@ -108,11 +100,20 @@ async def index(request):
     t = env.get_template("index.jinja")
     return response.html(t.render())
 
+@app.route("/test")
+async def test(request):
+
+    games = Game.select().limit(1)
+    positions = Position.select().where(Position.gameid==games[0].gameid)
+    t = env.get_template("test.jinja")
+    fens = [p.fen.fen() for p in positions]
+
+    return response.html(t.render(fens=fens))
+
 @app.route("/openings")
 async def openings(request):
 
-    session = Session()
-    openings = session.query(EcoName)
+    openings = EcoName.select()
     t = env.get_template("openings.jinja")
     return response.html(t.render(eco=openings))
 
@@ -120,11 +121,10 @@ async def openings(request):
 async def openings_name(request, name):
 
     name = urllib.parse.unquote(name)
-    session = Session()
-    rows = session.query(OpeningVar3Agg).filter_by(name=name)
+    rows = OpeningVar3Agg.select().where(OpeningVar3Agg.name==name)
     if not rows.count():
         return _no_results()
-    names = sorted(set([row.var1 for row in rows if row.var1]))
+    names = sorted(set([row.var1 for row in list(rows) if row.var1]))
 
     t = env.get_template("openings_name.jinja")
     return response.html(t.render(name=name, rows=rows, names=names))
@@ -132,54 +132,57 @@ async def openings_name(request, name):
 @app.route("/opening/var/<id>")
 async def opening_var(request, id):
 
-    session = Session()
-    opening = session.query(OpeningVar3Agg).filter_by(openingid=id).first()
+    opening = OpeningVar3Agg.select().where(OpeningVar3Agg.openingid==id).first()
     if not opening:
         return _no_results()
 
-    games = session.query(GameState).filter_by(openingid=id).\
-        order_by(func.random()).limit(50)
+    games = GameState.select().where(GameState.openingid==id).\
+        order_by(fn.random()).limit(50)
 
     t = env.get_template("opening_var.jinja")
     return response.html(t.render(opening=opening, games=games))
 
 @app.route("/pawns")
 async def pawns(request):
-    rows = Session().query(KmodeAgg)
+    rows = KModeAgg.select()
     t = env.get_template("pawns.jinja")
     return response.html(time_render(t, rows=rows))
 
 @app.route("/pawns/<id>")
 async def pawns_id(request, id):
 
-    session = Session()
-    pawns = session.query(KmodeAgg).filter_by(pclass=id)
-    if not pawns.count():
+    pawn = KModeAgg.select().where(KModeAgg.pclass==id).first()
+    if not pawn:
         return _no_results()
 
-    eco = session.query(PclassEcoName).filter_by(pclass=id)
-    var1 = session.query(PclassEcoVar1).filter_by(pclass=id)
+    eco = PclassEcoName.select().where(PclassEcoName.pclass==id)
+    var1 = PclassEcoVar1.select().where(PclassEcoVar1.pclass==id)
 
-    rows = session.query(Kmode).filter_by(pclass=id).\
-        order_by(func.random()).limit(20)
+    rows = KMode.select().where(KMode.pclass==id).\
+        order_by(fn.random()).limit(20)
     t = env.get_template("pawns_id.jinja")
 
-    return response.html(t.render(rows=rows, pawn=pawns[0], eco=eco, var1=var1))
+    return response.html(t.render(rows=rows, pawn=pawn, eco=eco, var1=var1))
 
-@app.route("/game")
-async def game(request):
+@app.route("/game/<id>")
+async def game(request, id):
 
-    g = Query.random_game()
-    game = Game.get(g.site)
-
+    game = Game.get(Game.gameid==id)
     if not game:
-        t = env.get_template("no_results.jinja")
-        return response.html(t.render())
-    else:
-        t = env.get_template("game.jinja")
-        return response.html(t.render(game=game))
+        return _no_results()
+    positions = Position.select().where(Position.gameid==id)
+    fens = [p.fen.fen() for p in positions]
+    gamestate = GameState.get(GameState.gameid==id)
+    opening = OpeningVar3Agg.get(OpeningVar3Agg.openingid==game.openingid)
+    pawn = KMode.get(KMode.gameid==game.gameid)
 
-
+    t = env.get_template("game_id.jinja")
+    return response.html(t.render(
+        game=game,
+        fens=fens,
+        gamestate=gamestate,
+        opening=opening,
+        pawn=pawn))
 
 
 if __name__ == "__main__":
