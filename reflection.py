@@ -74,6 +74,7 @@ class VEcoVar3(BaseModel):
 
 class VGame(BaseModel):
     bdiff = IntegerField(null=True)
+    bmg_class = IntegerField(null=True)
     bplayer = TextField(null=True)
     brating = IntegerField(null=True)
     date_ = DateField(null=True)
@@ -81,12 +82,14 @@ class VGame(BaseModel):
     gameid = TextField(null=True)
     moves = ArrayField(field_class=TextField, null=True)
     openingid = IntegerField(null=True)
+    pawn_class = IntegerField(null=True)
     pclass = IntegerField(null=True)
     result = Field(null=True)
     round = IntegerField(null=True)
     termination = TextField(null=True)
     time_control = TextField(null=True)
     wdiff = IntegerField(null=True)
+    wmg_class = IntegerField(null=True)
     wplayer = TextField(null=True)
     wrating = IntegerField(null=True)
 
@@ -113,7 +116,8 @@ class VGamestate(BaseModel):
     last = Field(null=True)
     mg = Field(null=True)
     openingid = IntegerField(null=True)
-    pclass = IntegerField(null=True)
+    pawn_class = IntegerField(null=True)
+    wmg_class = IntegerField(null=True)
 
     class Meta:
         table_name = 'v_gamestate'
@@ -126,8 +130,8 @@ class VKmode(BaseModel):
     hamming = BigIntegerField(null=True)
     jaccard = FloatField(null=True)
     pawn_centroid = Field(null=True)
+    pawn_class = IntegerField(null=True)
     pawns = Field(null=True)
-    pclass = IntegerField(null=True)
     stddev = DecimalField(null=True)
 
     class Meta:
@@ -143,7 +147,7 @@ class VKmodeAgg(BaseModel):
     jaccard = DecimalField(null=True)
     lose = DecimalField(null=True)
     pawn_centroid = Field(null=True)
-    pclass = IntegerField(null=True)
+    pawn_class = IntegerField(null=True)
     rating = FloatField(null=True)
     stddev = DecimalField(null=True)
     win = DecimalField(null=True)
@@ -261,8 +265,8 @@ class VOpeningVar3Top(BaseModel):
 class VPawnBoard(BaseModel):
     fen = Field(null=True)
     gameid = TextField(null=True)
+    pawn_class = IntegerField(null=True)
     pawns = Field(null=True)
-    pclass = IntegerField(null=True)
 
     class Meta:
         table_name = 'v_pawn_board'
@@ -276,7 +280,7 @@ class VPclassEcoName(BaseModel):
     group = DecimalField(null=True)
     moves = TextField(null=True)
     openingid = IntegerField(null=True)
-    pclass = IntegerField(null=True)
+    pawn_class = IntegerField(null=True)
     system = TextField(null=True)
 
     class Meta:
@@ -291,9 +295,8 @@ class VPclassEcoVar1(BaseModel):
     group = DecimalField(null=True)
     moves = TextField(null=True)
     openingid = IntegerField(null=True)
-    pclass = IntegerField(null=True)
+    pawn_class = IntegerField(null=True)
     system = TextField(null=True)
-    var1 = TextField(null=True)
 
     class Meta:
         table_name = 'v_pclass_eco_var1'

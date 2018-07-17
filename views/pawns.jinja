@@ -3,19 +3,19 @@
 {% block title2 %}Canonical Pawn Formations{% endblock %}
 {% block content %}
     {% for centroid in rows%}
-        <div style='float:left'>
 
-        <div style='float:right'>
-        <h4><a href=/pawns/{{centroid.pclass}}>centroid {{centroid.pclass}}</a></h4>
-        <table>
-                <tr><td>n</td><td class='number'> {{centroid.count}}</td></tr>
-                <tr><td>hamming avg</td><td class='number'> {{centroid.avg}}</td></tr>
-                <tr><td>hamming se</td><td class='number'> {{centroid.stddev}}</td></tr>
-                <tr><td>win %</td><td class='number'> {{centroid.win}}</td></tr>
-                <tr><td>avg rating</td><td class='number'> {{centroid.rating}}</td></tr>
-        </table></div>
-
-        {{ centroid.pawn_centroid.to_svg(250)}}
+        <div class='inblock'>
+          {{ centroid.pawn_centroid.to_svg(250)}}
+          <div class='inblock'>
+            <h4 ><a href=/pawns/{{centroid.pawn_class}}>centroid {{centroid.pawn_class}}</a></h4>
+            <table>
+                    <tr><td>n</td><td class='number'> {{centroid.count}}</td></tr>
+                    <tr><td>hamming avg</td><td class='number'> {{centroid.avg}}</td></tr>
+                    <tr><td>hamming se</td><td class='number'> {{centroid.stddev}}</td></tr>
+                    <tr><td>win %</td><td class='number'> {{centroid.win}}</td></tr>
+                    <tr><td>avg rating</td><td class='number'> {{centroid.rating}}</td></tr>
+            </table>
+          </div>
         </div>
     {% endfor %}
 

@@ -1,12 +1,12 @@
 
 
 {% extends "base.jinja" %}
-{% block title %}Pawn Formation #{{pawn.pclass}}{% endblock %}
-{% block title2 %}Pawn Formation #{{pawn.pclass}} {% endblock %}
+{% block title %}Pawn Formation #{{pawn.pawn_class}}{% endblock %}
+{% block title2 %}Pawn Formation #{{pawn.pawn_class}} {% endblock %}
 {% block content %}
 
 <div class='inblock'>
-<h4>pawn centroid # {{ pawn.pclass  }}</h4>
+<h4>pawn centroid # {{ pawn.pawn_class }}</h4>
 {{ pawn.pawn_centroid.to_svg(400) }}
 </div>
 
@@ -61,7 +61,7 @@
 
 {% for pos in rows %}
 
-  <div style='float:left;'>
+  <div class='inblock'>
    {{ game_link(pos) }}
     <span class='board_header'>
       {{pos.site}} {{pos.hamming}} {{pos.jaccard}}

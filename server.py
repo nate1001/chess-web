@@ -161,14 +161,14 @@ async def pawns(request):
 @app.route("/pawns/<id>")
 async def pawns_id(request, id):
 
-    pawn = KModeAgg.select().where(KModeAgg.pclass==id).first()
+    pawn = KModeAgg.select().where(KModeAgg.pawn_class==id).first()
     if not pawn:
         return _no_results()
 
-    eco = PclassEcoName.select().where(PclassEcoName.pclass==id)
-    var1 = PclassEcoVar1.select().where(PclassEcoVar1.pclass==id)
+    eco = PclassEcoName.select().where(PclassEcoName.pawn_class==id)
+    var1 = PclassEcoVar1.select().where(PclassEcoVar1.pawn_class==id)
 
-    rows = KMode.select().where(KMode.pclass==id).\
+    rows = KMode.select().where(KMode.pawn_class==id).\
         order_by(fn.random()).limit(20)
     t = env.get_template("pawns_id.jinja")
 
