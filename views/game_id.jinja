@@ -12,8 +12,8 @@
   <li>{{lichess_link(game, game.event)}}</li>
   <li>{{game.date_.strftime('%Y-%m-%d')}}</li>
   <li>{{game.time_control}}</li>
-  <li>w: {{game.white_name}}</li>
-  <li>b: {{game.black_name}}</li>
+  <li>{{game.white_name}}</li>
+  <li>{{game.black_name}}</li>
   <li>{{game.termination}}</li>
   <li>{{game.result}}</li>
   </ul>
@@ -27,11 +27,15 @@
     {{ opening.fen.to_svg(250) }} </div>
 
 <div class='chessboard'><span class='board_title'>
-    <a href='/pawns/{{pawn.pclass}}'>pawn group: #{{pawn.pclass}}</a></span></br>{{
-    pawn.pawn_centroid.to_svg(250) }} </div>
+    <a href='/pawns/{{pawn.kclass}}'>pawn group: #{{pawn.kclass}}</a></span></br>{{
+    pawn.centroid.to_svg(250) }} </div>
+
+<div class='chessboard'><span class='board_title'>
+    <a href='/mg/{{mg.kclass}}'>white mg system: #{{mg.kclass}}</a></span></br>{{
+    mg.centroid.to_svg(250) }} </div>
 <br/>
 
-<div class='chessboard'><span class='board_title'>pawn formation</span></br>{{ pawn.pawns.to_svg(250) }} </div>
+<div class='chessboard'><span class='board_title'>pawn formation</span></br>{{ pawn.selected.to_svg(250) }} </div>
 {%if gamestate.mg %}
 <div class='chessboard'><span class='board_title'>middle game</span></br>{{ gamestate.mg.to_svg(250) }} </div>
 {% endif %}

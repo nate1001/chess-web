@@ -14,15 +14,18 @@ reflection.database.connect('www-data')
 Connection.register_orm(reflection.database.connection())
 
 EcoName = reflection.VEcoName
-PclassEcoName = reflection.VPclassEcoName
-PclassEcoVar1 = reflection.VPclassEcoVar1
 GameState = reflection.VGamestate
 OpeningVar3Agg = reflection.VOpeningVar3Agg
 
-KMode = reflection.VKmode
-KMode._meta.table_name = 'm_kmode'
-KModeAgg = reflection.VKmodeAgg
-KModeAgg._meta.table_name = 'm_kmode_agg'
+KModePawn = reflection.VKmodePawn
+KModeAggPawn = reflection.VKmodeAggPawn
+KclassEcoNamePawn = reflection.VKclassEcoNamePawn
+KclassEcoVar1Pawn = reflection.VKclassEcoVar1Pawn
+
+KModeWmg = reflection.VKmodeWmg
+KModeAggWmg = reflection.VKmodeAggWmg
+KclassEcoNameWmg = reflection.VKclassEcoNameWmg
+KclassEcoVar1Wmg = reflection.VKclassEcoVar1Wmg
 
 Position = reflection.VPosition
 

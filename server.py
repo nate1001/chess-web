@@ -152,27 +152,59 @@ async def opening_var(request, id):
     t = env.get_template("opening_var.jinja")
     return response.html(t.render(opening=opening, games=games))
 
+async def _kmode(request, kmode, title, folder):
+    rows = kmode.select().order_by(kmode.count.desc())
+
+    t = env.get_template("kmode.jinja")
+
+    return response.html(time_render(t, rows=rows, title=title, folder=folder))
+
+
+def _kmode_id(request, id, kmode, kmodeagg, eco_name, eco_var1, title):
+
+    k = kmodeagg.select().where(kmodeagg.kclass==id).first()
+    if not kmode:
+        return _no_results()
+
+    eco = eco_name.select().where(eco_name.kclass==id)
+    var1 = eco_var1.select().where(eco_var1.kclass==id)
+
+    games = kmode.select().where(kmode.kclass==id).\
+        order_by(fn.random()).limit(20)
+
+    t = env.get_template('kmode_id.jinja')
+    return response.html(t.render(kmode=k, eco=eco, var1=var1,
+        games=games,
+        title=title))
+
 @app.route("/pawns")
-async def pawns(request):
-    rows = KModeAgg.select()
-    t = env.get_template("pawns.jinja")
-    return response.html(time_render(t, rows=rows))
+def pawns(request):
+
+    return _kmode(request, KModeAggPawn, 'Canonical Pawn Formations', 'pawns')
 
 @app.route("/pawns/<id>")
 async def pawns_id(request, id):
 
-    pawn = KModeAgg.select().where(KModeAgg.pawn_class==id).first()
-    if not pawn:
-        return _no_results()
+    return _kmode_id(
+            request, id, 
+            KModePawn, KModeAggPawn, 
+            KclassEcoNamePawn,
+            KclassEcoVar1Pawn,
+            'Pawn Formations')
 
-    eco = PclassEcoName.select().where(PclassEcoName.pawn_class==id)
-    var1 = PclassEcoVar1.select().where(PclassEcoVar1.pawn_class==id)
+@app.route("/mg")
+def mg(request):
+    return _kmode(request, KModeAggWmg, 'White Middle Game Systems', 'mg')
 
-    rows = KMode.select().where(KMode.pawn_class==id).\
-        order_by(fn.random()).limit(20)
-    t = env.get_template("pawns_id.jinja")
+@app.route("/mg/<id>")
+async def mg_id(request, id):
 
-    return response.html(t.render(rows=rows, pawn=pawn, eco=eco, var1=var1))
+    return _kmode_id(
+            request, id, 
+            KModeWmg, KModeAggWmg, 
+            KclassEcoNameWmg,
+            KclassEcoVar1Wmg,
+            'White Middle Game Systems')
 
 @app.route("/game/<id>")
 async def game(request, id):
@@ -184,7 +216,8 @@ async def game(request, id):
     fens = [p.fen.fen() for p in positions]
     gamestate = GameState.get(GameState.gameid==id)
     opening = OpeningVar3Agg.get(OpeningVar3Agg.openingid==game.openingid)
-    pawn = KMode.get(KMode.gameid==game.gameid)
+    pawn = KModePawn.get(KModePawn.gameid==game.gameid)
+    mg = KModeWmg.get(KModeWmg.gameid==game.gameid)
 
     t = env.get_template("game_id.jinja")
     return response.html(t.render(
@@ -192,8 +225,8 @@ async def game(request, id):
         fens=fens,
         gamestate=gamestate,
         opening=opening,
-        pawn=pawn))
-
+        pawn=pawn,
+        mg=mg))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

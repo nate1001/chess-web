@@ -1,20 +1,20 @@
 
 
 {% extends "base.jinja" %}
-{% block title %}Pawn Formation #{{pawn.pawn_class}}{% endblock %}
-{% block title2 %}Pawn Formation #{{pawn.pawn_class}} {% endblock %}
+{% block title %}{{ title }} #{{kmode.kclass}}{% endblock %}
+{% block title2 %}{{ title }} #{{kmode.kclass}} {% endblock %}
 {% block content %}
 
 <div class='inblock'>
-<h4>pawn centroid # {{ pawn.pawn_class }}</h4>
-{{ pawn.pawn_centroid.to_svg(400) }}
+<h4>centroid # {{ kmode.kclass}}</h4>
+{{ kmode.centroid.to_svg(400) }}
 </div>
 
 <div class='inblock'>
 <table>
-    <tr><td>count</td><td>{{ pawn.count }}</td></tr>
-    <tr><td>hamming avg</td><td>{{ pawn.avg}}</td></tr>
-    <tr><td>hamming se</td><td>{{ pawn.stddev}}</td></tr>
+    <tr><td>count</td><td>{{ kmode.count }}</td></tr>
+    <tr><td>hamming avg</td><td>{{ kmode.avg}}</td></tr>
+    <tr><td>hamming se</td><td>{{ kmode.stddev}}</td></tr>
     </table>
 </div>
 
@@ -29,7 +29,9 @@
         <td>
             <a class='hovershow' href="/opening/var/{{row.openingid}}">
               {{row.eco_name}}
-              {{ row.fen.to_svg(400) }}
+              {% if row.fen %}
+                {{ row.fen.to_svg(400) }}
+              {% endif %}
             </a> 
         </td>
     </tr>
@@ -47,7 +49,9 @@
         <td>
             <a class='hovershow' href="/opening/var/{{row.openingid}}">
               {{row.eco_name}}
+              {% if row.fen %}
               {{ row.fen.to_svg(400) }}
+              {% endif %}
             </a> 
         </td>
     </tr>
@@ -59,7 +63,7 @@
 
 <div style='clear:both;'/>
 
-{% for pos in rows %}
+{% for pos in games %}
 
   <div class='inblock'>
    {{ game_link(pos) }}
@@ -67,7 +71,7 @@
       {{pos.site}} {{pos.hamming}} {{pos.jaccard}}
     </span>
     <br/>
-        {{ pos.pawns.to_svg(250, comp=pos.pawn_centroid)}}
+        {{ pos.selected.to_svg(250, comp=pos.centroid)}}
     </div>
 
 {% endfor %}
