@@ -217,7 +217,8 @@ async def game(request, id):
     gamestate = GameState.get(GameState.gameid==id)
     opening = OpeningVar3Agg.get(OpeningVar3Agg.openingid==game.openingid)
     pawn = KModePawn.get(KModePawn.gameid==game.gameid)
-    mg = KModeWmg.get(KModeWmg.gameid==game.gameid)
+    wmg = KModeWmg.get(KModeWmg.gameid==game.gameid)
+    bmg = KModeBmg.get(KModeBmg.gameid==game.gameid)
 
     t = env.get_template("game_id.jinja")
     return response.html(t.render(
@@ -226,7 +227,9 @@ async def game(request, id):
         gamestate=gamestate,
         opening=opening,
         pawn=pawn,
-        mg=mg))
+        wmg=wmg,
+        bmg=bmg,
+        ))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

@@ -31,8 +31,12 @@
     pawn.centroid.to_svg(250) }} </div>
 
 <div class='chessboard'><span class='board_title'>
-    <a href='/mg/{{mg.kclass}}'>white mg system: #{{mg.kclass}}</a></span></br>{{
-    mg.centroid.to_svg(250) }} </div>
+    <a href='/mg/{{wmg.kclass}}'>white mg system: #{{wmg.kclass}}</a></span></br>{{
+    wmg.centroid.to_svg(250) }} </div>
+
+<div class='chessboard'><span class='board_title'>
+    <a href='/mg/{{bmg.kclass}}'>black mg system: #{{bmg.kclass}}</a></span></br>{{
+    bmg.centroid.to_svg(250) }} </div>
 <br/>
 
 <div class='chessboard'><span class='board_title'>pawn formation</span></br>{{ pawn.selected.to_svg(250) }} </div>

@@ -10,17 +10,6 @@ class BaseModel(Model):
     class Meta:
         database = database
 
-class Test(BaseModel):
-    count = BigIntegerField(null=True)
-    eco_name = TextField(null=True)
-    group = DecimalField(null=True)
-    pawn_class = IntegerField(null=True)
-    system = TextField(null=True)
-
-    class Meta:
-        table_name = 'test'
-        primary_key = False
-
 class VEcoName(BaseModel):
     eco = CharField(null=True)
     eco_name = TextField(null=True)
@@ -94,7 +83,6 @@ class VGame(BaseModel):
     moves = ArrayField(field_class=TextField, null=True)
     openingid = IntegerField(null=True)
     pawn_class = IntegerField(null=True)
-    pclass = IntegerField(null=True)
     result = Field(null=True)
     round = IntegerField(null=True)
     termination = TextField(null=True)
@@ -153,6 +141,19 @@ class VGamestate(BaseModel):
         table_name = 'v_gamestate'
         primary_key = False
 
+class VKclassEcoNameBmg(BaseModel):
+    count = BigIntegerField(null=True)
+    eco_name = TextField(null=True)
+    fen = Field(null=True)
+    group = DecimalField(null=True)
+    kclass = IntegerField(null=True)
+    moves = TextField(null=True)
+    system = TextField(null=True)
+
+    class Meta:
+        table_name = 'v_kclass_eco_name_bmg'
+        primary_key = False
+
 class VKclassEcoNamePawn(BaseModel):
     count = BigIntegerField(null=True)
     eco_name = TextField(null=True)
@@ -179,6 +180,19 @@ class VKclassEcoNameWmg(BaseModel):
         table_name = 'v_kclass_eco_name_wmg'
         primary_key = False
 
+class VKclassEcoVar1Bmg(BaseModel):
+    count = BigIntegerField(null=True)
+    eco_name = TextField(null=True)
+    fen = Field(null=True)
+    group = DecimalField(null=True)
+    kclass = IntegerField(null=True)
+    moves = TextField(null=True)
+    system = TextField(null=True)
+
+    class Meta:
+        table_name = 'v_kclass_eco_var1_bmg'
+        primary_key = False
+
 class VKclassEcoVar1Pawn(BaseModel):
     count = BigIntegerField(null=True)
     eco_name = TextField(null=True)
@@ -203,6 +217,24 @@ class VKclassEcoVar1Wmg(BaseModel):
 
     class Meta:
         table_name = 'v_kclass_eco_var1_wmg'
+        primary_key = False
+
+class VKmodeAggBmg(BaseModel):
+    avg = DecimalField(null=True)
+    centroid = Field(null=True)
+    count = BigIntegerField(null=True)
+    draw = DecimalField(null=True)
+    eco_name = ArrayField(field_class=TextField, null=True)
+    eco_var1 = ArrayField(field_class=TextField, null=True)
+    jaccard = DecimalField(null=True)
+    kclass = IntegerField(null=True)
+    lose = DecimalField(null=True)
+    rating = FloatField(null=True)
+    stddev = DecimalField(null=True)
+    win = DecimalField(null=True)
+
+    class Meta:
+        table_name = 'v_kmode_agg_bmg'
         primary_key = False
 
 class VKmodeAggPawn(BaseModel):
@@ -241,11 +273,23 @@ class VKmodeAggWmg(BaseModel):
         table_name = 'v_kmode_agg_wmg'
         primary_key = False
 
+class VKmodeBmg(BaseModel):
+    centroid = Field(null=True)
+    gameid = TextField(null=True)
+    hamming = DecimalField(null=True)
+    jaccard = DecimalField(null=True)
+    kclass = IntegerField(null=True)
+    selected = Field(null=True)
+
+    class Meta:
+        table_name = 'v_kmode_bmg'
+        primary_key = False
+
 class VKmodePawn(BaseModel):
     centroid = Field(null=True)
     gameid = TextField(null=True)
-    hamming = BigIntegerField(null=True)
-    jaccard = FloatField(null=True)
+    hamming = DecimalField(null=True)
+    jaccard = DecimalField(null=True)
     kclass = IntegerField(null=True)
     selected = Field(null=True)
 
@@ -256,8 +300,8 @@ class VKmodePawn(BaseModel):
 class VKmodeWmg(BaseModel):
     centroid = Field(null=True)
     gameid = TextField(null=True)
-    hamming = BigIntegerField(null=True)
-    jaccard = FloatField(null=True)
+    hamming = DecimalField(null=True)
+    jaccard = DecimalField(null=True)
     kclass = IntegerField(null=True)
     selected = Field(null=True)
 
@@ -371,47 +415,19 @@ class VOpeningVar3Top(BaseModel):
         table_name = 'v_opening_var3_top'
         primary_key = False
 
-class VPawnBoard(BaseModel):
-    fen = Field(null=True)
-    gameid = TextField(null=True)
-    pawn_class = IntegerField(null=True)
-    selected = Field(null=True)
-
-    class Meta:
-        table_name = 'v_pawn_board'
-        primary_key = False
-
-class VPclassEcoName(BaseModel):
-    count = BigIntegerField(null=True)
-    eco_name = TextField(null=True)
-    fen = Field(null=True)
-    group = DecimalField(null=True)
-    moves = TextField(null=True)
-    pawn_class = IntegerField(null=True)
-    system = TextField(null=True)
-
-    class Meta:
-        table_name = 'v_pclass_eco_name'
-        primary_key = False
-
-class VPclassEcoVar1(BaseModel):
-    count = BigIntegerField(null=True)
-    eco_name = TextField(null=True)
-    fen = Field(null=True)
-    group = DecimalField(null=True)
-    moves = TextField(null=True)
-    pawn_class = IntegerField(null=True)
-    system = TextField(null=True)
-
-    class Meta:
-        table_name = 'v_pclass_eco_var1'
-        primary_key = False
-
 class VPosition(BaseModel):
     fen = Field(null=True)
     gameid = TextField(null=True)
 
     class Meta:
         table_name = 'v_position'
+        primary_key = False
+
+class VPositionMg(BaseModel):
+    gameid = TextField(null=True)
+    selected = Field(null=True)
+
+    class Meta:
+        table_name = 'v_position_mg'
         primary_key = False
 

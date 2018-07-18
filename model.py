@@ -27,6 +27,11 @@ KModeAggWmg = reflection.VKmodeAggWmg
 KclassEcoNameWmg = reflection.VKclassEcoNameWmg
 KclassEcoVar1Wmg = reflection.VKclassEcoVar1Wmg
 
+KModeBmg = reflection.VKmodeBmg
+KModeAggBmg = reflection.VKmodeAggBmg
+KclassEcoNameBmg = reflection.VKclassEcoNameBmg
+KclassEcoVar1Bmg = reflection.VKclassEcoVar1Bmg
+
 Position = reflection.VPosition
 
 Game = reflection.VGame
